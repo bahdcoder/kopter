@@ -1,25 +1,33 @@
 {
-  "name": "kopter",
-  "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "description": "Complete saas starter app for node.js",
-  "repository": "https://github.com/bahdcoder/kopter",
-  "author": "Frantz Kati",
-  "license": "MIT",
-  "private": false,
-  "devDependencies": {
-    "@types/express": "^4.17.1",
-    "@types/jest": "^24.0.21",
-    "jest": "^24.9.0",
-    "ts-jest": "^24.1.0",
-    "typescript": "^3.6.4"
-  },
-  "dependencies": {
-    "express": "^4.17.1"
-  },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch"
-  }
+    "name": "kopter",
+    "version": "0.0.1",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "description": "Complete saas starter app for node.js",
+    "repository": "https://github.com/bahdcoder/kopter",
+    "author": "Frantz Kati",
+    "license": "MIT",
+    "private": false,
+    "devDependencies": {
+        "@types/express": "^4.17.1",
+        "@types/jest": "^24.0.21",
+        "husky": "^3.0.9",
+        "jest": "^24.9.0",
+        "prettier": "^1.18.2",
+        "ts-jest": "^24.1.0",
+        "typescript": "^3.6.4"
+    },
+    "dependencies": {
+        "express": "^4.17.1"
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "prettier": "prettier --write './**/*.{js,ts,json}'"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "yarn prettier && git add ."
+        }
+    }
 }
