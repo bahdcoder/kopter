@@ -1,7 +1,7 @@
-import Dotenv, { DotenvConfigOptions } from 'dotenv'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
 import PinoLogger from 'express-pino-logger'
+import Dotenv, { DotenvConfigOptions } from 'dotenv'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
