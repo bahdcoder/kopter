@@ -1,5 +1,1 @@
-import { Kopter } from './Kopter'
-
-export default {
-    Kopter
-}
+export { Kopter } from './Kopter'
