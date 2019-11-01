@@ -1,8 +1,12 @@
 import Express from 'express'
-import { Kopter } from 'kopter'
+import { Kopter, Container } from 'kopter'
 
-const app = new Kopter(Express()).init()
+const app = new Kopter(Express(), {
+    pino: false
+}).init()
+
 const PORT = 5000
+
 app.listen(PORT, () => {
-    console.log(`server listenign on port ${PORT}`)
+    console.log(`Server listening on port ${PORT}`)
 })
