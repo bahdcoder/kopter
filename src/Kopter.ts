@@ -1,3 +1,4 @@
+import Dotenv, { DotenvConfigOptions } from 'dotenv'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
 import PinoLogger from 'express-pino-logger'
@@ -5,6 +6,8 @@ import PinoLogger from 'express-pino-logger'
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
     pino?: PinoLogger.Options | undefined | Boolean
+    dotenv?: Dotenv.DotenvConfigOptions | undefined | Boolean
+    disableXPoweredByHeader?: Boolean
 }
 
 export class Kopter {
@@ -19,7 +22,9 @@ export class Kopter {
      */
     config: KopterConfig = {
         bodyParser: {},
-        pino: {}
+        pino: {},
+        dotenv: {},
+        disableXPoweredByHeader: true
     }
 
     constructor(app: Express.Application, config?: KopterConfig) {
@@ -43,10 +48,24 @@ export class Kopter {
     }
 
     /**
+     * Disable x-powered-by header added by default in express
+     */
+    public disableXPoweredByHeader(): void {
+        this.app.disable('x-powered-by')
+    }
+
+    /**
      * Registers the pino logger middleware
      */
     public registerPinoLogger(): void {
         this.app.use(PinoLogger((this.config.pino as PinoLogger.Options) || {}))
+    }
+
+    /**
+     * Register the dotenv package
+     */
+    public registerDotEnv(): void {
+        Dotenv.config((this.config.dotenv as DotenvConfigOptions) || {})
     }
 
     /**
@@ -57,6 +76,11 @@ export class Kopter {
      */
     public init(): Express.Application {
         /**
+         * Configure dotenv
+         */
+        if (this.config.dotenv) this.registerDotEnv()
+
+        /**
          * Configure body parser
          */
         if (this.config.bodyParser) this.registerBodyParser()
@@ -65,6 +89,11 @@ export class Kopter {
          * Configure pino logger
          */
         if (this.config.pino) this.registerPinoLogger()
+
+        /**
+         * Disable x-powered-by
+         */
+        if (this.config.disableXPoweredByHeader) this.disableXPoweredByHeader()
 
         return this.app
     }

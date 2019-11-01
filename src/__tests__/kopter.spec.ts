@@ -38,11 +38,11 @@ test('It does not register body parser if body parser is set to false', () => {
 test('It registers pino if pino is not set to false', () => {
     const kopter = new Kopter(Express())
 
-    jest.spyOn(kopter, 'registerBodyParser')
+    jest.spyOn(kopter, 'registerPinoLogger')
 
     kopter.init()
 
-    expect(kopter.registerBodyParser).toHaveBeenCalled()
+    expect(kopter.registerPinoLogger).toHaveBeenCalled()
 })
 
 test('It does not register pino logger if pino is set to false', () => {
@@ -55,4 +55,49 @@ test('It does not register pino logger if pino is set to false', () => {
     kopter.init()
 
     expect(kopter.registerPinoLogger).toHaveBeenCalled()
+})
+
+test('It registers dotenv if dotenv is not set to false', () => {
+    const kopter = new Kopter(Express())
+
+    jest.spyOn(kopter, 'registerDotEnv')
+
+    kopter.init()
+
+    expect(kopter.registerDotEnv).toHaveBeenCalled()
+})
+
+test('It does not register dotenv if dotenv is set to false', () => {
+    const kopter = new Kopter(Express(), {
+        dotenv: false
+    })
+
+    jest.spyOn(kopter, 'registerDotEnv')
+
+    kopter.init()
+
+    expect(kopter.registerDotEnv).toHaveBeenCalledTimes(0)
+})
+
+test('It registers pino if pino is not set to false', () => {
+    const kopter = new Kopter(Express())
+
+    jest.spyOn(kopter, 'disableXPoweredByHeader')
+
+    kopter.init()
+
+    expect(kopter.disableXPoweredByHeader).toHaveBeenCalled()
+})
+
+test('It does not register pino logger if pino is set to false', () => {
+    const kopter = new Kopter(Express(), {
+        pino: {},
+        disableXPoweredByHeader: false
+    })
+
+    jest.spyOn(kopter, 'disableXPoweredByHeader')
+
+    kopter.init()
+
+    expect(kopter.disableXPoweredByHeader).toHaveBeenCalledTimes(0)
 })
