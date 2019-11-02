@@ -1,3 +1,4 @@
+import Cors from 'cors'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
 import PinoLogger from 'express-pino-logger'
@@ -8,6 +9,7 @@ export interface KopterConfig {
     pino?: PinoLogger.Options | undefined | Boolean
     dotenv?: Dotenv.DotenvConfigOptions | undefined | Boolean
     disableXPoweredByHeader?: Boolean
+    cors?: Cors.CorsOptions | undefined | Boolean
 }
 
 export class Kopter {
@@ -24,7 +26,8 @@ export class Kopter {
         bodyParser: {},
         pino: {},
         dotenv: {},
-        disableXPoweredByHeader: true
+        disableXPoweredByHeader: true,
+        cors: {}
     }
 
     constructor(app: Express.Application, config?: KopterConfig) {
@@ -69,6 +72,13 @@ export class Kopter {
     }
 
     /**
+     * Register the cors package
+     */
+    public registerCors(): void {
+        this.app.use(Cors(this.config.cors as Cors.CorsOptions))
+    }
+
+    /**
      *
      * Initialize the express application
      *
@@ -94,6 +104,11 @@ export class Kopter {
          * Disable x-powered-by
          */
         if (this.config.disableXPoweredByHeader) this.disableXPoweredByHeader()
+
+        /**
+         * Configure Cors
+         */
+        if (this.config.cors) this.registerCors()
 
         return this.app
     }
