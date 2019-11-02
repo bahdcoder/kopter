@@ -1,1 +1,6 @@
+export * from 'typedi'
+export * from 'mongoose'
 export { Kopter } from './Kopter'
+export * from './models/user.model'
+export { ExtendSchema } from './utils/extend-schema'
+export { UserService } from './services/user.service'

@@ -1,8 +1,14 @@
 import Cors from 'cors'
+import 'reflect-metadata'
+import Container from 'typedi'
+import Mongoose from 'mongoose'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
 import PinoLogger from 'express-pino-logger'
 import Dotenv, { DotenvConfigOptions } from 'dotenv'
+
+import { UserSchema } from './models/user.model'
+import { RegisterController } from './controllers/register.controller'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
@@ -10,6 +16,8 @@ export interface KopterConfig {
     dotenv?: Dotenv.DotenvConfigOptions | undefined | Boolean
     disableXPoweredByHeader?: Boolean
     cors?: Cors.CorsOptions | undefined | Boolean
+    mongoose?: Mongoose.ConnectionOptions
+    UserSchema?: Mongoose.Schema
 }
 
 export class Kopter {
@@ -26,8 +34,14 @@ export class Kopter {
         bodyParser: {},
         pino: {},
         dotenv: {},
+        cors: {},
+        UserSchema,
         disableXPoweredByHeader: true,
-        cors: {}
+        mongoose: {
+            useCreateIndex: true,
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        }
     }
 
     constructor(app: Express.Application, config?: KopterConfig) {
@@ -79,37 +93,97 @@ export class Kopter {
     }
 
     /**
+     * Fetches all models and registers them into DI container
+     */
+    public registerModelsIntoContainer(): void {
+        const UserModel = Mongoose.model('User', this.config.UserSchema)
+
+        Container.set('user.model', UserModel)
+    }
+
+    /**
+     * Connects to mongoose or gracefully shuts down
+     */
+    public establishDataseConnection() {
+        return Mongoose.connect(
+            process.env.MONGODB_URL as string,
+            this.config.mongoose
+        )
+    }
+
+    public getAuthRouter() {
+        const router = Express.Router()
+
+        this.app.use('/auth', router)
+
+        return router
+    }
+
+    public registerRoutes(): void {
+        const router = this.getAuthRouter()
+
+        router.post('/register', Container.get(RegisterController).register)
+    }
+
+    /**
      *
      * Initialize the express application
+     * First try to connect to the database
+     * If it fails, gracefully shut down
      *
      * @return Express.Application
      */
-    public init(): Express.Application {
+    public init(): Promise<Express.Application | void> {
         /**
          * Configure dotenv
          */
         if (this.config.dotenv) this.registerDotEnv()
 
         /**
-         * Configure body parser
-         */
-        if (this.config.bodyParser) this.registerBodyParser()
-
-        /**
          * Configure pino logger
          */
         if (this.config.pino) this.registerPinoLogger()
 
-        /**
-         * Disable x-powered-by
-         */
-        if (this.config.disableXPoweredByHeader) this.disableXPoweredByHeader()
+        return (
+            this.establishDataseConnection()
 
-        /**
-         * Configure Cors
-         */
-        if (this.config.cors) this.registerCors()
+                /**
+                 * If a successful database connection is established,
+                 *
+                 */
+                .then(() => {
+                    /**
+                     * Register all mongoose models into container
+                     */
+                    this.registerModelsIntoContainer()
 
-        return this.app
+                    this.registerRoutes()
+
+                    /**
+                     * Configure body parser
+                     */
+                    if (this.config.bodyParser) this.registerBodyParser()
+
+                    /**
+                     * Disable x-powered-by
+                     */
+                    if (this.config.disableXPoweredByHeader)
+                        this.disableXPoweredByHeader()
+
+                    /**
+                     * Configure Cors
+                     */
+                    if (this.config.cors) this.registerCors()
+
+                    return this.app
+                })
+
+                .catch(e => {
+                    console.log(e)
+                    // TODO: Gracefully shut down the system
+                    // maybe send a notification that things are broken.
+                    return Promise.reject(e)
+                })
+        )
     }
 }
