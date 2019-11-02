@@ -1,12 +1,19 @@
 import Express from 'express'
 import { Kopter, Container } from 'kopter'
 
-const app = new Kopter(Express(), {
+import UserSchema from './models/user.model'
+
+new Kopter(Express(), {
+    UserSchema,
     pino: false
-}).init()
-
-const PORT = 5000
-
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`)
 })
+    .init()
+    .then(app => {
+        const PORT = 5000
+
+        // console.log(Container.get('user.model').schema.paths)
+
+        app.listen(PORT, () => {
+            console.log(`Server listening on port: ${PORT}`)
+        })
+    })
