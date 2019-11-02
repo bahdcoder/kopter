@@ -34,6 +34,7 @@ export class Kopter {
         bodyParser: {},
         pino: {},
         dotenv: {},
+        cors: {},
         UserSchema,
         disableXPoweredByHeader: true,
         mongoose: {
@@ -168,6 +169,11 @@ export class Kopter {
                      */
                     if (this.config.disableXPoweredByHeader)
                         this.disableXPoweredByHeader()
+
+                    /**
+                     * Configure Cors
+                     */
+                    if (this.config.cors) this.registerCors()
 
                     return this.app
                 })
