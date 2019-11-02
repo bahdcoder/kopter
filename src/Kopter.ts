@@ -4,11 +4,17 @@ import Container from 'typedi'
 import Mongoose from 'mongoose'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
+import { getValue } from 'indicative-utils'
 import PinoLogger from 'express-pino-logger'
+import { extend } from 'indicative/validator'
+import { EventEmitter2 } from 'eventemitter2'
+import { asyncRequest } from './utils/async-request'
 import Dotenv, { DotenvConfigOptions } from 'dotenv'
 
 import { UserSchema } from './models/user.model'
+import { StatusCodes } from './utils/status-codes'
 import { RegisterController } from './controllers/register.controller'
+import { EVENT_DISPATCHER, X_POWERED_BY, USER_MODEL } from './utils/constants'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
@@ -68,7 +74,7 @@ export class Kopter {
      * Disable x-powered-by header added by default in express
      */
     public disableXPoweredByHeader(): void {
-        this.app.disable('x-powered-by')
+        this.app.disable(X_POWERED_BY)
     }
 
     /**
@@ -76,6 +82,10 @@ export class Kopter {
      */
     public registerPinoLogger(): void {
         this.app.use(PinoLogger((this.config.pino as PinoLogger.Options) || {}))
+    }
+
+    public registerEventEmitter(): void {
+        Container.set(EVENT_DISPATCHER, new EventEmitter2({}))
     }
 
     /**
@@ -96,9 +106,10 @@ export class Kopter {
      * Fetches all models and registers them into DI container
      */
     public registerModelsIntoContainer(): void {
-        const UserModel = Mongoose.model('User', this.config.UserSchema)
-
-        Container.set('user.model', UserModel)
+        Container.set(
+            USER_MODEL,
+            Mongoose.model('User', this.config.UserSchema)
+        )
     }
 
     /**
@@ -119,10 +130,46 @@ export class Kopter {
         return router
     }
 
+    public extendIndicative() {
+        extend('unique', {
+            async: true,
+
+            validate: (data: any, field, args, config) =>
+                (Container.get(USER_MODEL) as any)
+                    .findOne({ [field]: getValue(data, field) })
+                    .then((user: any) => (user ? false : true))
+                    .catch(() => false)
+        })
+    }
+
+    public registerResponseHelpers() {
+        this.app.use(
+            (
+                request: Express.Request,
+                response: Express.Response,
+                next: Express.NextFunction
+            ) => {
+                Object.keys(StatusCodes).forEach((status: string) => {
+                    const statusCode = StatusCodes[status]
+                    // @ts-ignore
+                    response[status] = (data: string | Array<any> | Object) =>
+                        response.status(statusCode).json({
+                            code: status,
+                            data
+                        })
+                })
+                next()
+            }
+        )
+    }
+
     public registerRoutes(): void {
         const router = this.getAuthRouter()
 
-        router.post('/register', Container.get(RegisterController).register)
+        router.post(
+            '/register',
+            asyncRequest(Container.get(RegisterController).register)
+        )
     }
 
     /**
@@ -134,6 +181,8 @@ export class Kopter {
      * @return Express.Application
      */
     public init(): Promise<Express.Application | void> {
+        this.registerEventEmitter()
+
         /**
          * Configure dotenv
          */
@@ -157,7 +206,9 @@ export class Kopter {
                      */
                     this.registerModelsIntoContainer()
 
-                    this.registerRoutes()
+                    this.extendIndicative()
+
+                    this.registerResponseHelpers()
 
                     /**
                      * Configure body parser
@@ -174,6 +225,8 @@ export class Kopter {
                      * Configure Cors
                      */
                     if (this.config.cors) this.registerCors()
+
+                    this.registerRoutes()
 
                     return this.app
                 })
