@@ -1,15 +1,15 @@
+import Cors from 'cors'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
 import PinoLogger from 'express-pino-logger'
 import Dotenv, { DotenvConfigOptions } from 'dotenv'
-import cors from 'cors'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
     pino?: PinoLogger.Options | undefined | Boolean
     dotenv?: Dotenv.DotenvConfigOptions | undefined | Boolean
     disableXPoweredByHeader?: Boolean
-    cors?: cors.CorsOptions | undefined | Boolean
+    cors?: Cors.CorsOptions | undefined | Boolean
 }
 
 export class Kopter {
@@ -75,7 +75,7 @@ export class Kopter {
      * Register the cors package
      */
     public registerCors(): void {
-        this.app.use(cors(this.config.cors as cors.CorsOptions))
+        this.app.use(Cors(this.config.cors as Cors.CorsOptions))
     }
 
     /**

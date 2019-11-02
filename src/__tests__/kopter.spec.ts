@@ -101,3 +101,25 @@ test('It does not register pino logger if pino is set to false', () => {
 
     expect(kopter.disableXPoweredByHeader).toHaveBeenCalledTimes(0)
 })
+
+test('It registers cors if cors is not set to false', () => {
+    const kopter = new Kopter(Express())
+
+    jest.spyOn(kopter, 'registerCors')
+
+    kopter.init()
+
+    expect(kopter.registerCors).toHaveBeenCalled()
+})
+
+test('It does not register cors if body cors is set to false', () => {
+    const kopter = new Kopter(Express(), {
+        cors: false
+    })
+
+    jest.spyOn(kopter, 'registerCors')
+
+    kopter.init()
+
+    expect(kopter.registerCors).toHaveBeenCalledTimes(0)
+})
