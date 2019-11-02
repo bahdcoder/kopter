@@ -4,11 +4,15 @@ import Container from 'typedi'
 import Mongoose from 'mongoose'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
+import { getValue } from 'indicative-utils'
 import PinoLogger from 'express-pino-logger'
+import { extend } from 'indicative/validator'
+import { asyncRequest } from './utils/async-request'
 import Dotenv, { DotenvConfigOptions } from 'dotenv'
 
 import { UserSchema } from './models/user.model'
 import { RegisterController } from './controllers/register.controller'
+import { StatusCodes } from './utils/status-codes'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
@@ -119,10 +123,46 @@ export class Kopter {
         return router
     }
 
+    public extendIndicative() {
+        extend('unique', {
+            async: true,
+
+            validate: (data: any, field, args, config) =>
+                (Container.get('user.model') as any)
+                    .findOne({ [field]: getValue(data, field) })
+                    .then((user: any) => (user ? false : true))
+                    .catch(() => false)
+        })
+    }
+
+    public registerResponseHelpers() {
+        this.app.use(
+            (
+                request: Express.Request,
+                response: Express.Response,
+                next: Express.NextFunction
+            ) => {
+                Object.keys(StatusCodes).forEach((status: string) => {
+                    const statusCode = StatusCodes[status]
+                    // @ts-ignore
+                    response[status] = (data: string | Array<any> | Object) =>
+                        response.status(statusCode).json({
+                            code: status,
+                            data
+                        })
+                })
+                next()
+            }
+        )
+    }
+
     public registerRoutes(): void {
         const router = this.getAuthRouter()
 
-        router.post('/register', Container.get(RegisterController).register)
+        router.post(
+            '/register',
+            asyncRequest(Container.get(RegisterController).register)
+        )
     }
 
     /**
@@ -157,7 +197,9 @@ export class Kopter {
                      */
                     this.registerModelsIntoContainer()
 
-                    this.registerRoutes()
+                    this.extendIndicative()
+
+                    this.registerResponseHelpers()
 
                     /**
                      * Configure body parser
@@ -174,6 +216,8 @@ export class Kopter {
                      * Configure Cors
                      */
                     if (this.config.cors) this.registerCors()
+
+                    this.registerRoutes()
 
                     return this.app
                 })

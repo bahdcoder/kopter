@@ -8,5 +8,9 @@ export class UserService {
      * Creates a new user
      * Emits required events
      */
-    public async create() {}
+    public async create(data: any) {
+        const user = await this.UserModel.create(data)
+
+        return user
+    }
 }

@@ -14,6 +14,6 @@ new Kopter(Express(), {
         // console.log(Container.get('user.model').schema.paths)
 
         app.listen(PORT, () => {
-            console.log(`Server listening on port: ${PORT}`)
+            console.log(`Server listening on port ${PORT}`)
         })
     })
