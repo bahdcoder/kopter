@@ -106,9 +106,10 @@ export class Kopter {
      * Fetches all models and registers them into DI container
      */
     public registerModelsIntoContainer(): void {
-        const UserModel = Mongoose.model('User', this.config.UserSchema)
-
-        Container.set(USER_MODEL, UserModel)
+        Container.set(
+            USER_MODEL,
+            Mongoose.model('User', this.config.UserSchema)
+        )
     }
 
     /**
@@ -134,7 +135,7 @@ export class Kopter {
             async: true,
 
             validate: (data: any, field, args, config) =>
-                (Container.get('user.model') as any)
+                (Container.get(USER_MODEL) as any)
                     .findOne({ [field]: getValue(data, field) })
                     .then((user: any) => (user ? false : true))
                     .catch(() => false)

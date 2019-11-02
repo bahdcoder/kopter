@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/auth/register can register a new user to the database 1`] = `
+Array [
+  "_id",
+  "email",
+  "password",
+  "emailConfirmCode",
+  "__v",
+]
+`;
+
+exports[`/auth/register does not allow duplicate emails 1`] = `
+Object {
+  "code": "badRequest",
+  "data": Array [
+    Object {
+      "field": "email",
+      "message": "unique validation failed on email",
+      "validation": "unique",
+    },
+  ],
+}
+`;
+
+exports[`/auth/register validates email and password correctly 1`] = `
+Object {
+  "code": "badRequest",
+  "data": Array [
+    Object {
+      "field": "email",
+      "message": "required validation failed on email",
+      "validation": "required",
+    },
+    Object {
+      "field": "password",
+      "message": "required validation failed on password",
+      "validation": "required",
+    },
+  ],
+}
+`;
