@@ -7,12 +7,14 @@ import BodyParser from 'body-parser'
 import { getValue } from 'indicative-utils'
 import PinoLogger from 'express-pino-logger'
 import { extend } from 'indicative/validator'
+import { EventEmitter2 } from 'eventemitter2'
 import { asyncRequest } from './utils/async-request'
 import Dotenv, { DotenvConfigOptions } from 'dotenv'
 
 import { UserSchema } from './models/user.model'
-import { RegisterController } from './controllers/register.controller'
 import { StatusCodes } from './utils/status-codes'
+import { RegisterController } from './controllers/register.controller'
+import { EVENT_DISPATCHER, X_POWERED_BY, USER_MODEL } from './utils/constants'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
@@ -72,7 +74,7 @@ export class Kopter {
      * Disable x-powered-by header added by default in express
      */
     public disableXPoweredByHeader(): void {
-        this.app.disable('x-powered-by')
+        this.app.disable(X_POWERED_BY)
     }
 
     /**
@@ -80,6 +82,10 @@ export class Kopter {
      */
     public registerPinoLogger(): void {
         this.app.use(PinoLogger((this.config.pino as PinoLogger.Options) || {}))
+    }
+
+    public registerEventEmitter(): void {
+        Container.set(EVENT_DISPATCHER, new EventEmitter2({}))
     }
 
     /**
@@ -102,7 +108,7 @@ export class Kopter {
     public registerModelsIntoContainer(): void {
         const UserModel = Mongoose.model('User', this.config.UserSchema)
 
-        Container.set('user.model', UserModel)
+        Container.set(USER_MODEL, UserModel)
     }
 
     /**
@@ -174,6 +180,8 @@ export class Kopter {
      * @return Express.Application
      */
     public init(): Promise<Express.Application | void> {
+        this.registerEventEmitter()
+
         /**
          * Configure dotenv
          */

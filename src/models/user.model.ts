@@ -1,11 +1,4 @@
-import Mongoose, { Schema, Document } from 'mongoose'
-
-export interface UserDocument extends Document {
-    email: String
-    firstName: String
-    lastName: String
-    password: String
-}
+import Mongoose, { Schema } from 'mongoose'
 
 export const UserSchema: Schema = new Mongoose.Schema({
     email: {
@@ -35,7 +28,3 @@ export const UserSchema: Schema = new Mongoose.Schema({
         required: false
     }
 })
-
-UserSchema.methods.serialize = function() {
-    return this
-}

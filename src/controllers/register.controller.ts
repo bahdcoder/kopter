@@ -2,12 +2,19 @@ import Express from 'express'
 import Bcrypt from 'bcryptjs'
 import { Inject } from 'typedi'
 import RandomString from 'randomstring'
+import { EventEmitter2 } from 'eventemitter2'
 import { validateAll } from 'indicative/validator'
+import {
+    EVENT_DISPATCHER,
+    USER_SERVICE,
+    USER_REGISTERED
+} from '../utils/constants'
 import { UserService } from '../services/user.service'
 
 export class RegisterController {
     public constructor(
-        @Inject('user.service') private UserService: UserService
+        @Inject(USER_SERVICE) private UserService: UserService,
+        @Inject(EVENT_DISPATCHER) private EventEmitter: EventEmitter2
     ) {}
 
     /**
@@ -24,7 +31,9 @@ export class RegisterController {
             this.creationData(request.body)
         )
 
-        return response.created(user.toObject())
+        this.EventEmitter.emit(USER_REGISTERED, user)
+
+        return response.created(user)
     }
 
     public validate = async (data: any) => {

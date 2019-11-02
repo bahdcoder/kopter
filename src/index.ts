@@ -1,6 +1,7 @@
 export * from 'typedi'
 export * from 'mongoose'
 export { Kopter } from './Kopter'
+export * from './utils/constants'
 export * from './models/user.model'
 export { asyncRequest } from './utils/async-request'
 export { ExtendSchema } from './utils/extend-schema'
