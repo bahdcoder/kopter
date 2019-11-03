@@ -2,47 +2,53 @@ declare module 'validator'
 
 declare namespace Express {
     export interface Response {
-        continue: (message?: string) => any
-        switchingProtocols: (message?: string) => any
-        ok: (message?: string) => any
-        created: (message?: string) => any
-        accepted: (message?: string) => any
-        nonAuthoritativeInformation: (message?: string) => any
-        noContent: (message?: string) => any
-        resetContent: (message?: string) => any
-        partialContent: (message?: string) => any
-        multipleChoices: (message?: string) => any
-        movedPermanently: (message?: string) => any
-        found: (message?: string) => any
-        seeOther: (message?: string) => any
-        notModified: (message?: string) => any
+        continue: (data?: string | Array<any> | Object) => any
+        switchingProtocols: (data?: string | Array<any> | Object) => any
+        ok: (data?: string | Array<any> | Object) => any
+        created: (data?: string | Array<any> | Object) => any
+        accepted: (data?: string | Array<any> | Object) => any
+        nonAuthoritativeInformation: (
+            data?: string | Array<any> | Object
+        ) => any
+        noContent: (data?: string | Array<any> | Object) => any
+        resetContent: (data?: string | Array<any> | Object) => any
+        partialContent: (data?: string | Array<any> | Object) => any
+        multipleChoices: (data?: string | Array<any> | Object) => any
+        movedPermanently: (data?: string | Array<any> | Object) => any
+        found: (data?: string | Array<any> | Object) => any
+        seeOther: (data?: string | Array<any> | Object) => any
+        notModified: (data?: string | Array<any> | Object) => any
         useProxy: (message?: string) => any
-        temporaryRedirect: (message?: string) => any
-        badRequest: (message?: string) => any
-        unauthorized: (message?: string) => any
-        paymentRequired: (message?: string) => any
-        forbidden: (message?: string) => any
-        notFound: (message?: string) => any
-        methodNotAllowed: (message?: string) => any
-        notAcceptable: (message?: string) => any
-        proxyAuthenticationRequired: (message?: string) => any
-        requestTimeout: (message?: string) => any
-        conflict: (message?: string) => any
-        gone: (message?: string) => any
-        lengthRequired: (message?: string) => any
-        preconditionFailed: (message?: string) => any
-        requestEntityTooLarge: (message?: string) => any
-        requestUriTooLong: (message?: string) => any
-        unsupportedMediaType: (message?: string) => any
-        requestedRangeNotSatisfiable: (message?: string) => any
-        expectationFailed: (message?: string) => any
-        unprocessableEntity: (message?: string) => any
-        tooManyRequests: (message?: string) => any
-        internalServerError: (message?: string) => any
-        notImplemented: (message?: string) => any
-        badGateway: (message?: string) => any
-        serviceUnavailable: (message?: string) => any
-        gatewayTimeout: (message?: string) => any
-        httpVersionNotSupported: (message?: string) => any
+        temporaryRedirect: (data?: string | Array<any> | Object) => any
+        badRequest: (data?: string | Array<any> | Object) => any
+        unauthorized: (data?: string | Array<any> | Object) => any
+        paymentRequired: (data?: string | Array<any> | Object) => any
+        forbidden: (data?: string | Array<any> | Object) => any
+        notFound: (data?: string | Array<any> | Object) => any
+        methodNotAllowed: (data?: string | Array<any> | Object) => any
+        notAcceptable: (data?: string | Array<any> | Object) => any
+        proxyAuthenticationRequired: (
+            data?: string | Array<any> | Object
+        ) => any
+        requestTimeout: (data?: string | Array<any> | Object) => any
+        conflict: (data?: string | Array<any> | Object) => any
+        gone: (data?: string | Array<any> | Object) => any
+        lengthRequired: (data?: string | Array<any> | Object) => any
+        preconditionFailed: (data?: string | Array<any> | Object) => any
+        requestEntityTooLarge: (data?: string | Array<any> | Object) => any
+        requestUriTooLong: (mdata?: string | Array<any> | Object) => any
+        unsupportedMediaType: (data?: string | Array<any> | Object) => any
+        requestedRangeNotSatisfiable: (
+            data?: string | Array<any> | Object
+        ) => any
+        expectationFailed: (data?: string | Array<any> | Object) => any
+        unprocessableEntity: (data?: string | Array<any> | Object) => any
+        tooManyRequests: (data?: string | Array<any> | Object) => any
+        internalServerError: (data?: string | Array<any> | Object) => any
+        notImplemented: (data?: string | Array<any> | Object) => any
+        badGateway: (data?: string | Array<any> | Object) => any
+        serviceUnavailable: (data?: string | Array<any> | Object) => any
+        gatewayTimeout: (data?: string | Array<any> | Object) => any
+        httpVersionNotSupported: (data?: string | Array<any> | Object) => any
     }
 }
