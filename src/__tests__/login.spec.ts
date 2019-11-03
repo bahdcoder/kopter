@@ -1,11 +1,13 @@
 import Faker from 'faker'
 import Express from 'express'
-import Container from 'typedi'
+import Bcrypt from 'bcryptjs'
 import Request from 'supertest'
 import Mongoose from 'mongoose'
+import Container from 'typedi'
 import { USER_MODEL } from '../utils/constants'
 import { Kopter, KopterConfig } from '../Kopter'
 
+process.env.JWT_SECRET = 'shhh'
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
 const defaultKopterConfig: KopterConfig = {
@@ -18,47 +20,59 @@ afterAll(async () => {
 
 const generateFakeUser = () => ({
     email: Faker.internet.email(),
-    password: Faker.internet.password(),
-    emailConfirmCode: Faker.random.word()
+    emailConfirmCode: Faker.random.word(),
+    password: Bcrypt.hashSync('password')
 })
 
-test('/auth/register can register a new user to the database', async () => {
+test('/auth/login can login a user with the right credentials', async () => {
     const app = await new Kopter(Express(), defaultKopterConfig).init()
 
     const user = generateFakeUser()
-    const response = await Request(app)
-        .post('/auth/register')
-        .send({
-            email: user.email,
-            password: user.password
-        })
 
-    expect(response.body.code).toBe('created')
-    expect(Object.keys(response.body.data)).toMatchSnapshot()
-})
-
-test('/auth/register does not allow duplicate emails', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
-
-    const user = generateFakeUser()
     await (Container.get(USER_MODEL) as any).create(user)
 
     const response = await Request(app)
-        .post('/auth/register')
+        .post('/auth/login')
         .send({
             email: user.email,
-            password: user.password
+            password: 'password'
         })
 
+    expect(response.body.code).toBe('ok')
+    expect(Object.keys(response.body.data)).toMatchSnapshot()
+})
+
+test('/auth/login does not allow user login with wrong password', async () => {
+    const app = await new Kopter(Express(), defaultKopterConfig).init()
+
+    const user = generateFakeUser()
+
+    await (Container.get(USER_MODEL) as any).create(user)
+
+    const response = await Request(app)
+        .post('/auth/login')
+        .send({
+            email: user.email
+        })
+
+    expect(response.body.code).toBe('badRequest')
     expect(response.body).toMatchSnapshot()
 })
 
-test('/auth/register validates email and password correctly', async () => {
+test('/auth/login does not allow login with wrong email', async () => {
     const app = await new Kopter(Express(), defaultKopterConfig).init()
 
-    const response = await Request(app)
-        .post('/auth/register')
-        .send({})
+    const user = generateFakeUser()
 
+    await (Container.get(USER_MODEL) as any).create(user)
+
+    const response = await Request(app)
+        .post('/auth/login')
+        .send({
+            email: 'email_does_not@exist.com',
+            password: 'password'
+        })
+
+    expect(response.body.code).toBe('badRequest')
     expect(response.body).toMatchSnapshot()
 })

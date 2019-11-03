@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/auth/login can login a user with the right credentials 1`] = `
+Array [
+  "user",
+  "token",
+]
+`;
+
+exports[`/auth/login does not allow login with wrong email 1`] = `
+Object {
+  "code": "badRequest",
+  "data": "Could not find a user with that email.",
+}
+`;
+
+exports[`/auth/login does not allow user login with wrong password 1`] = `
+Object {
+  "code": "badRequest",
+  "data": Array [
+    Object {
+      "field": "password",
+      "message": "required validation failed on password",
+      "validation": "required",
+    },
+  ],
+}
+`;
