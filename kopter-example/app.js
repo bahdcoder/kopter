@@ -1,22 +1,17 @@
 import Express from 'express'
-import { Kopter, Container, EVENT_DISPATCHER, USER_REGISTERED } from 'kopter'
+import { Kopter } from 'kopter'
 
 import UserSchema from './models/user.model'
+import UserService from './services/user.service'
 
 new Kopter(Express(), {
     UserSchema,
-    pino: false
+    pino: false,
+    UserService
 })
     .init()
     .then(app => {
         const PORT = 5000
-
-        Container.get(EVENT_DISPATCHER).on(USER_REGISTERED, user => {
-            console.log(
-                '#######################################################',
-                user
-            )
-        })
 
         app.listen(PORT, () => {
             console.log(`Server listening on port ${PORT}`)

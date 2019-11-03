@@ -13,8 +13,15 @@ import Dotenv, { DotenvConfigOptions } from 'dotenv'
 
 import { UserSchema } from './models/user.model'
 import { StatusCodes } from './utils/status-codes'
+import { UserService } from './services/user.service'
+import { LoginController } from './controllers/login.controller'
 import { RegisterController } from './controllers/register.controller'
-import { EVENT_DISPATCHER, X_POWERED_BY, USER_MODEL } from './utils/constants'
+import {
+    EVENT_DISPATCHER,
+    X_POWERED_BY,
+    USER_MODEL,
+    USER_SERVICE
+} from './utils/constants'
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
@@ -24,6 +31,7 @@ export interface KopterConfig {
     cors?: Cors.CorsOptions | undefined | Boolean
     mongoose?: Mongoose.ConnectionOptions
     UserSchema?: Mongoose.Schema
+    UserService?: any
 }
 
 export class Kopter {
@@ -42,6 +50,7 @@ export class Kopter {
         dotenv: {},
         cors: {},
         UserSchema,
+        UserService,
         disableXPoweredByHeader: true,
         mongoose: {
             useCreateIndex: true,
@@ -56,7 +65,10 @@ export class Kopter {
         /**
          * Merge the config with the default one.
          */
-        this.config = Object.assign(this.config, config || {})
+        this.config = {
+            ...this.config,
+            ...(config || {})
+        }
     }
 
     /**
@@ -109,6 +121,11 @@ export class Kopter {
         Container.set(
             USER_MODEL,
             Mongoose.model('User', this.config.UserSchema)
+        )
+
+        Container.set(
+            USER_SERVICE,
+            new this.config.UserService(Container.get(USER_MODEL))
         )
     }
 
@@ -169,6 +186,11 @@ export class Kopter {
         router.post(
             '/register',
             asyncRequest(Container.get(RegisterController).register)
+        )
+
+        router.post(
+            '/login',
+            asyncRequest(Container.get(LoginController).login)
         )
     }
 
