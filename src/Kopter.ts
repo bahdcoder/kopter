@@ -65,7 +65,10 @@ export class Kopter {
         /**
          * Merge the config with the default one.
          */
-        this.config = Object.assign(this.config, config || {})
+        this.config = {
+            ...this.config,
+            ...(config || {})
+        }
     }
 
     /**

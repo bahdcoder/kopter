@@ -1,6 +1,9 @@
 declare module 'validator'
 
 declare namespace Express {
+    export interface Request {
+        authUser?: any
+    }
     export interface Response {
         continue: (data?: string | Array<any> | Object) => any
         switchingProtocols: (data?: string | Array<any> | Object) => any
