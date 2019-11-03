@@ -9,7 +9,15 @@ import { Kopter, KopterConfig } from '../Kopter'
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
 const defaultKopterConfig: KopterConfig = {
-    pino: false
+    pino: false,
+    mail: {
+        connection: 'memory',
+        views: '/src/mails',
+        viewEngine: 'handlebars',
+        memory: {
+            driver: 'memory'
+        }
+    }
 }
 
 afterAll(async () => {
