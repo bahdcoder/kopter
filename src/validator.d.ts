@@ -1,4 +1,5 @@
 declare module 'validator'
+declare module 'friendly-mail'
 
 declare namespace Express {
     export interface Request {

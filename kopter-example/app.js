@@ -7,7 +7,13 @@ import UserService from './services/user.service'
 new Kopter(Express(), {
     UserSchema,
     pino: false,
-    UserService
+    UserService,
+    mail: {
+        views: '/mails',
+        ethereal: {
+            driver: 'ethereal'
+        }
+    }
 })
     .init()
     .then(app => {

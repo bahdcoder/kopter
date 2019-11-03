@@ -1,7 +1,11 @@
+import Fs from 'fs'
+import Path from 'path'
 import Cors from 'cors'
 import 'reflect-metadata'
+import Omit from 'object.omit'
 import Container from 'typedi'
 import Mongoose from 'mongoose'
+import DeepMerge from 'deepmerge'
 import * as Express from 'express'
 import BodyParser from 'body-parser'
 import { getValue } from 'indicative-utils'
@@ -14,14 +18,24 @@ import Dotenv, { DotenvConfigOptions } from 'dotenv'
 import { UserSchema } from './models/user.model'
 import { StatusCodes } from './utils/status-codes'
 import { UserService } from './services/user.service'
+import { MailService } from './services/mail.service'
 import { LoginController } from './controllers/login.controller'
 import { RegisterController } from './controllers/register.controller'
 import {
     EVENT_DISPATCHER,
     X_POWERED_BY,
     USER_MODEL,
-    USER_SERVICE
+    USER_SERVICE,
+    MAIL_SERVICE,
+    USER_REGISTERED
 } from './utils/constants'
+
+export interface MailOptions {
+    connection: string | undefined
+    views: string | undefined
+    viewEngine: string
+    [key: string]: any
+}
 
 export interface KopterConfig {
     bodyParser?: BodyParser.OptionsJson | undefined | Boolean
@@ -32,6 +46,9 @@ export interface KopterConfig {
     mongoose?: Mongoose.ConnectionOptions
     UserSchema?: Mongoose.Schema
     UserService?: any
+    MailService?: any
+    mail?: MailOptions
+    disableRegistrationEventListeners?: boolean | undefined
 }
 
 export class Kopter {
@@ -51,23 +68,43 @@ export class Kopter {
         cors: {},
         UserSchema,
         UserService,
+        MailService,
         disableXPoweredByHeader: true,
         mongoose: {
             useCreateIndex: true,
             useNewUrlParser: true,
             useUnifiedTopology: true
-        }
+        },
+        mail: {
+            views: 'src/mails',
+            connection: 'ethereal',
+            viewEngine: 'handlebars'
+        },
+        disableRegistrationEventListeners: false
     }
 
-    constructor(app: Express.Application, config?: KopterConfig) {
+    constructor(app: Express.Application, config: KopterConfig = {}) {
         this.app = app
+
+        const plainConfig = Omit(config, [
+            'UserSchema',
+            'UserService',
+            'MailService'
+        ])
+        const plainDefaultConfig = Omit(this.config, [
+            'UserSchema',
+            'UserService',
+            'MailService'
+        ])
 
         /**
          * Merge the config with the default one.
          */
         this.config = {
-            ...this.config,
-            ...(config || {})
+            UserSchema: config.UserSchema || this.config.UserSchema,
+            UserService: config.UserService || this.config.UserService,
+            MailService: config.MailService || this.config.MailService,
+            ...DeepMerge(plainDefaultConfig, plainConfig)
         }
     }
 
@@ -122,10 +159,50 @@ export class Kopter {
             USER_MODEL,
             Mongoose.model('User', this.config.UserSchema)
         )
+    }
 
+    public registerServices(): void {
         Container.set(
             USER_SERVICE,
             new this.config.UserService(Container.get(USER_MODEL))
+        )
+
+        Container.set(
+            MAIL_SERVICE,
+            new this.config.MailService(this.config.mail)
+        )
+    }
+
+    public registerRegistrationEventListeners() {
+        if (this.config.disableRegistrationEventListeners) return
+
+        const config = this.config.mail as MailOptions
+        ;(Container.get(EVENT_DISPATCHER) as EventEmitter2).on(
+            USER_REGISTERED,
+            async (user: any) => {
+                const mailName = 'confirm-email'
+                // check if the user has created a confirm-email mail in their
+                // configured views folder
+                const mailFolder: string = ((process.cwd() as string) +
+                    config.views) as string
+
+                const customMailConfig: any = {}
+
+                if (!Fs.existsSync(`${mailFolder}/${mailName}`)) {
+                    customMailConfig.useCustomMailPaths = true
+
+                    customMailConfig.views = Path.resolve(__dirname, 'mails')
+                }
+
+                // if they have, then use that
+                // if not, then use the default in the mails folder
+                await (Container.get(MAIL_SERVICE) as MailService)
+                    .build(mailName, customMailConfig)
+                    .to(user.email)
+                    .data({ user })
+                    .subject('Welcome to Kopter !!!')
+                    .send()
+            }
         )
     }
 
@@ -227,6 +304,10 @@ export class Kopter {
                      * Register all mongoose models into container
                      */
                     this.registerModelsIntoContainer()
+
+                    this.registerServices()
+
+                    this.registerRegistrationEventListeners()
 
                     this.extendIndicative()
 
