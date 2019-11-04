@@ -1,5 +1,6 @@
 import Fs from 'fs'
 import Path from 'path'
+import Bull from 'bull'
 import Cors from 'cors'
 import 'reflect-metadata'
 import Omit from 'object.omit'
@@ -49,6 +50,7 @@ export interface KopterConfig {
     MailService?: any
     mail?: MailOptions
     disableRegistrationEventListeners?: boolean | undefined
+    queue?: any
 }
 
 export class Kopter {
@@ -56,7 +58,7 @@ export class Kopter {
      *
      * The express instance
      */
-    app: Express.Application
+    app: Express.Application | undefined
 
     /**
      * The default kopter configuration
@@ -80,10 +82,24 @@ export class Kopter {
             connection: 'ethereal',
             viewEngine: 'handlebars'
         },
-        disableRegistrationEventListeners: false
+        disableRegistrationEventListeners: false,
+        queue: {
+            workers: [
+                {
+                    name: 'mails.queue',
+                    options: {},
+                    handler() {
+                        console.log('############# MAGIC HAPPENING HERE')
+                    }
+                }
+            ]
+        }
     }
 
-    constructor(app: Express.Application, config: KopterConfig = {}) {
+    constructor(
+        app?: Express.Application | undefined,
+        config: KopterConfig = {}
+    ) {
         this.app = app
 
         const plainConfig = Omit(config, [
@@ -112,7 +128,7 @@ export class Kopter {
      * Registers the body-parser middleware
      */
     public registerBodyParser(): void {
-        this.app.use(
+        ;(this.app as Express.Application).use(
             BodyParser.json(
                 (this.config.bodyParser as BodyParser.OptionsJson) || {}
             )
@@ -123,14 +139,22 @@ export class Kopter {
      * Disable x-powered-by header added by default in express
      */
     public disableXPoweredByHeader(): void {
-        this.app.disable(X_POWERED_BY)
+        ;(this.app as Express.Application).disable(X_POWERED_BY)
+    }
+
+    public registerQueueWorkers(): void {
+        this.config.queue.workers.forEach((worker: any) => {
+            Container.set(worker.name, new Bull(worker.name))
+        })
     }
 
     /**
      * Registers the pino logger middleware
      */
     public registerPinoLogger(): void {
-        this.app.use(PinoLogger((this.config.pino as PinoLogger.Options) || {}))
+        ;(this.app as Express.Application).use(
+            PinoLogger((this.config.pino as PinoLogger.Options) || {})
+        )
     }
 
     public registerEventEmitter(): void {
@@ -148,7 +172,9 @@ export class Kopter {
      * Register the cors package
      */
     public registerCors(): void {
-        this.app.use(Cors(this.config.cors as Cors.CorsOptions))
+        ;(this.app as Express.Application).use(
+            Cors(this.config.cors as Cors.CorsOptions)
+        )
     }
 
     /**
@@ -196,12 +222,13 @@ export class Kopter {
 
                 // if they have, then use that
                 // if not, then use the default in the mails folder
-                await (Container.get(MAIL_SERVICE) as MailService)
-                    .build(mailName, customMailConfig)
-                    .to(user.email)
-                    .data({ user })
-                    .subject('Welcome to Kopter !!!')
-                    .send()
+                ;(Container.get('mails.queue') as any).add({
+                    data: user,
+                    mailName,
+                    customMailConfig,
+                    subject: 'Welcome to Kopter !!!',
+                    recipients: user.email
+                })
             }
         )
     }
@@ -218,8 +245,7 @@ export class Kopter {
 
     public getAuthRouter() {
         const router = Express.Router()
-
-        this.app.use('/auth', router)
+        ;(this.app as Express.Application).use('/auth', router)
 
         return router
     }
@@ -237,7 +263,7 @@ export class Kopter {
     }
 
     public registerResponseHelpers() {
-        this.app.use(
+        ;(this.app as Express.Application).use(
             (
                 request: Express.Request,
                 response: Express.Response,
@@ -271,6 +297,23 @@ export class Kopter {
         )
     }
 
+    public initConsole(): any {
+        this.registerEventEmitter()
+
+        this.registerQueueWorkers()
+
+        /**
+         * Configure dotenv
+         */
+        if (this.config.dotenv) this.registerDotEnv()
+
+        this.registerModelsIntoContainer()
+
+        this.registerServices()
+
+        return this
+    }
+
     /**
      *
      * Initialize the express application
@@ -291,6 +334,8 @@ export class Kopter {
          * Configure pino logger
          */
         if (this.config.pino) this.registerPinoLogger()
+
+        this.registerQueueWorkers()
 
         return (
             this.establishDataseConnection()
