@@ -1,8 +1,7 @@
-import Express from 'express'
-import Mongoose from 'mongoose'
-import { Kopter, KopterConfig } from '../Kopter'
+const Mongoose = require('mongoose')
+const Kopter = require('../Kopter')
 
-const defaultKopterConfig: KopterConfig = {}
+const defaultKopterConfig = {}
 
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
@@ -11,19 +10,19 @@ afterAll(async () => {
 })
 
 test('It initialises a new instance correctly', () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     expect(kopter.app).toBeDefined()
 })
 
 test('It returns the app when init function is called', async () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     expect(await kopter.init()).toBe(kopter.app)
 })
 
 test('It registers body parser if body parser is not set to false', async () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'registerBodyParser')
 
@@ -33,7 +32,7 @@ test('It registers body parser if body parser is not set to false', async () => 
 })
 
 test('It does not register body parser if body parser is set to false', async () => {
-    const kopter = new Kopter(Express(), {
+    const kopter = new Kopter({
         ...defaultKopterConfig,
         bodyParser: false
     })
@@ -46,7 +45,7 @@ test('It does not register body parser if body parser is set to false', async ()
 })
 
 test('It registers pino if pino is not set to false', async () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'registerPinoLogger')
 
@@ -56,7 +55,7 @@ test('It registers pino if pino is not set to false', async () => {
 })
 
 test('It does not register pino logger if pino is set to false', async () => {
-    const kopter = new Kopter(Express(), {
+    const kopter = new Kopter({
         ...defaultKopterConfig,
         pino: false
     })
@@ -69,7 +68,7 @@ test('It does not register pino logger if pino is set to false', async () => {
 })
 
 test('It registers dotenv if dotenv is not set to false', async () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'registerDotEnv')
 
@@ -79,7 +78,7 @@ test('It registers dotenv if dotenv is not set to false', async () => {
 })
 
 test('It does not register dotenv if dotenv is set to false', async () => {
-    const kopter = new Kopter(Express(), {
+    const kopter = new Kopter({
         ...defaultKopterConfig,
         dotenv: false
     })
@@ -92,7 +91,7 @@ test('It does not register dotenv if dotenv is set to false', async () => {
 })
 
 test('It registers pino if pino is not set to false', async () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'disableXPoweredByHeader')
 
@@ -102,7 +101,7 @@ test('It registers pino if pino is not set to false', async () => {
 })
 
 test('It does not register pino logger if pino is set to false', async () => {
-    const kopter = new Kopter(Express(), {
+    const kopter = new Kopter({
         ...defaultKopterConfig,
         pino: {},
         disableXPoweredByHeader: false
@@ -116,7 +115,7 @@ test('It does not register pino logger if pino is set to false', async () => {
 })
 
 test('It registers cors if cors is not set to false', async () => {
-    const kopter = new Kopter(Express(), defaultKopterConfig)
+    const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'registerCors')
 
@@ -126,7 +125,7 @@ test('It registers cors if cors is not set to false', async () => {
 })
 
 test('It does not register cors if body cors is set to false', async () => {
-    const kopter = new Kopter(Express(), {
+    const kopter = new Kopter({
         ...defaultKopterConfig,
         cors: false
     })

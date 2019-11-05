@@ -2,11 +2,8 @@
 
 exports[`/auth/register can register a new user to the database 1`] = `
 Array [
-  "_id",
-  "email",
-  "password",
-  "emailConfirmCode",
-  "__v",
+  "user",
+  "token",
 ]
 `;
 

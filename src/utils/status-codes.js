@@ -1,4 +1,4 @@
-export const StatusCodes: any = {
+module.exports = {
     continue: 100,
     switchingProtocols: 101,
     ok: 200,
