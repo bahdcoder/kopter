@@ -1,7 +1,7 @@
-import Faker from 'faker'
-import Bcrypt from 'bcryptjs'
+const Faker = require('faker')
+const Bcrypt = require('bcryptjs')
 
-export const generateFakeUser = () => ({
+module.exports = () => ({
     email: Faker.internet.email(),
     emailConfirmCode: Faker.random.word(),
     password: Bcrypt.hashSync('password')

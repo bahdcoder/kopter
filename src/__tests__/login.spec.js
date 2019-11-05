@@ -1,16 +1,15 @@
-import Faker from 'faker'
-import Express from 'express'
-import Bcrypt from 'bcryptjs'
-import Request from 'supertest'
-import Mongoose from 'mongoose'
-import Container from 'typedi'
-import { USER_MODEL } from '../utils/constants'
-import { Kopter, KopterConfig } from '../Kopter'
+const Faker = require('faker')
+const Bcrypt = require('bcryptjs')
+const Kopter = require('../Kopter')
+const Request = require('supertest')
+const Mongoose = require('mongoose')
+const { Container } = require('typedi')
+const { USER_MODEL } = require('../utils/constants')
 
 process.env.JWT_SECRET = 'shhh'
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
-const defaultKopterConfig: KopterConfig = {
+const defaultKopterConfig = {
     pino: false
 }
 
@@ -25,11 +24,11 @@ const generateFakeUser = () => ({
 })
 
 test('/auth/login can login a user with the right credentials', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
+    const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
 
-    await (Container.get(USER_MODEL) as any).create(user)
+    await Container.get(USER_MODEL).create(user)
 
     const response = await Request(app)
         .post('/auth/login')
@@ -43,11 +42,11 @@ test('/auth/login can login a user with the right credentials', async () => {
 })
 
 test('/auth/login does not allow user login with wrong password', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
+    const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
 
-    await (Container.get(USER_MODEL) as any).create(user)
+    await Container.get(USER_MODEL).create(user)
 
     const response = await Request(app)
         .post('/auth/login')
@@ -60,11 +59,11 @@ test('/auth/login does not allow user login with wrong password', async () => {
 })
 
 test('/auth/login does not allow login with wrong email', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
+    const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
 
-    await (Container.get(USER_MODEL) as any).create(user)
+    await Container.get(USER_MODEL).create(user)
 
     const response = await Request(app)
         .post('/auth/login')

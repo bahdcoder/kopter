@@ -1,14 +1,13 @@
-import Faker from 'faker'
-import Express from 'express'
-import Container from 'typedi'
-import Request from 'supertest'
-import Mongoose from 'mongoose'
-import { USER_MODEL } from '../utils/constants'
-import { Kopter, KopterConfig } from '../Kopter'
+const Faker = require('faker')
+const Kopter = require('../Kopter')
+const Request = require('supertest')
+const Mongoose = require('mongoose')
+const { Container } = require('typedi')
+const { USER_MODEL } = require('../utils/constants')
 
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
-const defaultKopterConfig: KopterConfig = {
+const defaultKopterConfig = {
     pino: false,
     mail: {
         connection: 'memory',
@@ -31,7 +30,7 @@ const generateFakeUser = () => ({
 })
 
 test('/auth/register can register a new user to the database', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
+    const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
     const response = await Request(app)
@@ -46,10 +45,10 @@ test('/auth/register can register a new user to the database', async () => {
 })
 
 test('/auth/register does not allow duplicate emails', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
+    const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
-    await (Container.get(USER_MODEL) as any).create(user)
+    await Container.get(USER_MODEL).create(user)
 
     const response = await Request(app)
         .post('/auth/register')
@@ -62,7 +61,7 @@ test('/auth/register does not allow duplicate emails', async () => {
 })
 
 test('/auth/register validates email and password correctly', async () => {
-    const app = await new Kopter(Express(), defaultKopterConfig).init()
+    const app = await new Kopter(defaultKopterConfig).init()
 
     const response = await Request(app)
         .post('/auth/register')

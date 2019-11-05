@@ -1,6 +1,6 @@
-import Mongoose, { Schema } from 'mongoose'
+const Mongoose = require('mongoose')
 
-export const UserSchema: Schema = new Mongoose.Schema({
+const UserSchema = new Mongoose.Schema({
     email: {
         type: String,
         unique: true,
@@ -28,3 +28,5 @@ export const UserSchema: Schema = new Mongoose.Schema({
         required: false
     }
 })
+
+module.exports = UserSchema

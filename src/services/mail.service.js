@@ -1,7 +1,9 @@
-import Mail from 'friendly-mail'
+const Mail = require('friendly-mail')
 
-export class MailService {
-    constructor(private MailerConfig: any) {}
+class MailService {
+    constructor(config) {
+        this.MailerConfig = config
+    }
 
     /**
      * Send a mail
@@ -9,10 +11,12 @@ export class MailService {
      *
      * @param customConfig with this we can override MailerConfig
      */
-    public build(mailName: string, customConfig: any = {}) {
+    build(mailName, customConfig) {
         return new Mail(mailName, {
             ...this.MailerConfig,
             ...customConfig
         })
     }
 }
+
+module.exports = MailService

@@ -4,7 +4,7 @@ import { Kopter } from 'kopter'
 import UserSchema from './models/user.model'
 import UserService from './services/user.service'
 
-new Kopter(Express(), {
+new Kopter({
     UserSchema,
     pino: false,
     UserService,

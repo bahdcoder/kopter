@@ -1,7 +1,0 @@
-export const USER_MODEL: string = 'user.model'
-export const X_POWERED_BY: string = 'x-powered-by'
-export const USER_SERVICE: string = 'user.service'
-export const MAIL_SERVICE: string = 'mail.service'
-export const USER_LOGGED_IN: string = 'user.loggedin'
-export const USER_REGISTERED: string = 'user.registered'
-export const EVENT_DISPATCHER: string = 'event.dispatcher'
