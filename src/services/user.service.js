@@ -1,5 +1,6 @@
 const Bcrypt = require('bcryptjs')
 const Jwt = require('jsonwebtoken')
+const Omit = require('object.omit')
 const { Container } = require('typedi')
 const { USER_MODEL } = require('../utils/constants')
 
@@ -46,6 +47,10 @@ class UserService {
         return {
             _id: user._id
         }
+    }
+
+    serializeUser(user) {
+        return Omit(user.toObject(), ['emailConfirmCode', 'password', '__v'])
     }
 
     getJWTSecret() {

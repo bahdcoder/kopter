@@ -5,6 +5,7 @@ const Mongoose = require('mongoose')
 const { Container } = require('typedi')
 const { USER_MODEL } = require('../utils/constants')
 
+process.env.JWT_SECRET = 'shhh'
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
 const defaultKopterConfig = {
@@ -29,7 +30,7 @@ const generateFakeUser = () => ({
     emailConfirmCode: Faker.random.word()
 })
 
-test('/auth/register can register a new user to the database', async () => {
+test.only('/auth/register can register a new user to the database', async () => {
     const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()

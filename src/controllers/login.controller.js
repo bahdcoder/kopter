@@ -21,11 +21,11 @@ class LoginController {
     async login(request, response) {
         await this.validate(request.body)
 
-        const user = await this.UserService.attempt(request.body)
+        const { user, token } = await this.UserService.attempt(request.body)
 
         this.EventDispatcher.emit(USER_LOGGED_IN, user)
 
-        return this.successResponse(response, user)
+        return this.successResponse(response, { user, token })
     }
 
     async validate(data) {
@@ -47,8 +47,11 @@ class LoginController {
         return {}
     }
 
-    successResponse(response, user) {
-        return response.ok(user)
+    successResponse(response, { user, token }) {
+        return response.ok({
+            user: this.UserService.serializeUser(user),
+            token
+        })
     }
 }
 

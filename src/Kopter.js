@@ -22,15 +22,20 @@ const {
     USER_SERVICE,
     MAIL_SERVICE,
     USER_REGISTERED,
-    LOGIN_CONTROLLER,
-    REGISTER_CONTROLLER
+    NOTIFICATION_MODEL,
+    NOTIFICATION_SERVICE,
+    NOTIFICATION_CHANNELS
 } = require('./utils/constants')
 const UserSchema = require('./models/user.model')
 const StatusCodes = require('./utils/status-codes')
 const UserService = require('./services/user.service')
 const MailService = require('./services/mail.service')
+const NotificationSchema = require('./models/notification.model')
 const LoginController = require('./controllers/login.controller')
+const NotificationService = require('./services/notification.service')
 const RegisterController = require('./controllers/register.controller')
+const MailNotificationChannel = require('./notification-channels/mail')
+const DatabaseNotificationChannel = require('./notification-channels/database')
 
 class Kopter {
     constructor(config = {}) {
@@ -44,6 +49,11 @@ class Kopter {
             UserSchema,
             UserService,
             MailService,
+            NotificationSchema,
+            notificationChannels: [
+                MailNotificationChannel,
+                DatabaseNotificationChannel
+            ],
             disableXPoweredByHeader: true,
             mongoose: {
                 useCreateIndex: true,
@@ -72,9 +82,12 @@ class Kopter {
         const plainConfig = Omit(config, [
             'UserSchema',
             'UserService',
-            'MailService'
+            'MailService',
+            'NotificationSchema'
         ])
+
         const plainDefaultConfig = Omit(this.config, [
+            'NotificationSchema',
             'UserSchema',
             'UserService',
             'MailService'
@@ -87,6 +100,8 @@ class Kopter {
             UserSchema: config.UserSchema || this.config.UserSchema,
             UserService: config.UserService || this.config.UserService,
             MailService: config.MailService || this.config.MailService,
+            NotificationSchema:
+                config.NotificationSchema || this.config.NotificationSchema,
             ...DeepMerge(plainDefaultConfig, plainConfig)
         }
     }
@@ -144,6 +159,29 @@ class Kopter {
             USER_MODEL,
             Mongoose.model('User', this.config.UserSchema)
         )
+
+        Container.set(
+            NOTIFICATION_MODEL,
+            Mongoose.model('Notification', this.config.NotificationSchema)
+        )
+    }
+
+    registerNotificationChannels() {
+        const Notification = new NotificationService()
+
+        Container.set(NOTIFICATION_CHANNELS, this.config.notificationChannels)
+
+        this.config.notificationChannels.forEach(channel => {
+            Notification[
+                `to${channel.channelName || channel.name}`
+            ] = channelData => {
+                Notification[channel.channelName || channel.name] = channelData
+
+                return Notification
+            }
+        })
+
+        Container.set(NOTIFICATION_SERVICE, Notification)
     }
 
     registerServices() {
@@ -192,7 +230,7 @@ class Kopter {
     /**
      * Connects to mongoose or gracefully shuts down
      */
-    establishDataseConnection() {
+    establishDatabaseConnection() {
         return Mongoose.connect(process.env.MONGODB_URL, this.config.mongoose)
     }
 
@@ -257,6 +295,8 @@ class Kopter {
 
         this.registerServices()
 
+        this.registerNotificationChannels()
+
         return this
     }
 
@@ -284,7 +324,7 @@ class Kopter {
         this.registerQueueWorkers()
 
         return (
-            this.establishDataseConnection()
+            this.establishDatabaseConnection()
 
                 /**
                  * If a successful database connection is established,
@@ -297,6 +337,8 @@ class Kopter {
                     this.registerModelsIntoContainer()
 
                     this.registerServices()
+
+                    this.registerNotificationChannels()
 
                     this.registerRegistrationEventListeners()
 

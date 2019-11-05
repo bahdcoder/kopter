@@ -1,21 +1,22 @@
 const { Container } = require('typedi')
+const { NOTIFICATION_CHANNELS } = require('../utils/constants')
 
 class Notification {
-    constructor() {
-        this.mail = null
-        this.database = null
-        this.UserModel = Container.get(USER_MODEL)
-    }
+    async send(users) {
+        if (!Array.isArray(users)) {
+            users = [users]
+        }
 
-    toMail() {
-        this.mail = mail
-    }
+        const channels = Container.get(NOTIFICATION_CHANNELS)
 
-    toDatabase() {
-        this.database = database
-    }
+        for (let index = 0; index < channels.length; index++) {
+            const Channel = channels[index]
 
-    send() {}
+            if (!this[Channel.channelName] && !this[Channel.name]) continue
+
+            await new Channel(this).send(users)
+        }
+    }
 }
 
 module.exports = Notification

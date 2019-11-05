@@ -31,9 +31,11 @@ class RegisterController {
             this.creationData(request.body)
         )
 
+        const token = this.UserService.generateJWTForUser(user)
+
         this.EventEmitter.emit(USER_REGISTERED, user)
 
-        return response.created(user)
+        return this.successResponse(response, { user, token })
     }
 
     async validate(data) {
@@ -71,6 +73,13 @@ class RegisterController {
 
     customErrorMessages() {
         return {}
+    }
+
+    successResponse(response, { user, token }) {
+        return response.created({
+            user: this.UserService.serializeUser(user),
+            token
+        })
     }
 }
 
