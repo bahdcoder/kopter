@@ -24,7 +24,10 @@ const {
     USER_REGISTERED,
     NOTIFICATION_MODEL,
     NOTIFICATION_SERVICE,
-    NOTIFICATION_CHANNELS
+    NOTIFICATION_CHANNELS,
+    FORGOT_PASSWORD_SERVICE,
+    FORGOT_PASSWORD_MODEL,
+    RESET_PASSWORD_SERVICE
 } = require('./utils/constants')
 const UserSchema = require('./models/user.model')
 const StatusCodes = require('./utils/status-codes')
@@ -32,10 +35,15 @@ const UserService = require('./services/user.service')
 const MailService = require('./services/mail.service')
 const NotificationSchema = require('./models/notification.model')
 const LoginController = require('./controllers/login.controller')
+const ForgotPasswordSchema = require('./models/forgot.password.model')
 const NotificationService = require('./services/notification.service')
 const RegisterController = require('./controllers/register.controller')
 const MailNotificationChannel = require('./notification-channels/mail')
+const ResetPasswordService = require('./services/reset.password.service')
+const ForgotPasswordService = require('./services/forgot.password.service')
 const DatabaseNotificationChannel = require('./notification-channels/database')
+const ResetPasswordController = require('./controllers/reset.password.controller')
+const ForgotPasswordController = require('./controllers/forgot.password.controller')
 
 class Kopter {
     constructor(config = {}) {
@@ -48,7 +56,10 @@ class Kopter {
             cors: {},
             UserSchema,
             UserService,
+            ForgotPasswordSchema,
             MailService,
+            ForgotPasswordService,
+            ResetPasswordService,
             NotificationSchema,
             notificationChannels: [
                 MailNotificationChannel,
@@ -83,14 +94,18 @@ class Kopter {
             'UserSchema',
             'UserService',
             'MailService',
-            'NotificationSchema'
+            'NotificationSchema',
+            'ForgotPasswordSchema',
+            'ForgotPasswordService'
         ])
 
         const plainDefaultConfig = Omit(this.config, [
             'NotificationSchema',
             'UserSchema',
             'UserService',
-            'MailService'
+            'MailService',
+            'ForgotPasswordSchema',
+            'ForgotPasswordService'
         ])
 
         /**
@@ -100,6 +115,13 @@ class Kopter {
             UserSchema: config.UserSchema || this.config.UserSchema,
             UserService: config.UserService || this.config.UserService,
             MailService: config.MailService || this.config.MailService,
+            ForgotPasswordService:
+                config.ForgotPasswordService ||
+                this.config.ForgotPasswordService,
+            ForgotPasswordSchema:
+                config.ForgotPasswordSchema || this.config.ForgotPasswordSchema,
+            ResetPasswordService:
+                config.ResetPasswordService || this.config.ResetPasswordService,
             NotificationSchema:
                 config.NotificationSchema || this.config.NotificationSchema,
             ...DeepMerge(plainDefaultConfig, plainConfig)
@@ -164,6 +186,11 @@ class Kopter {
             NOTIFICATION_MODEL,
             Mongoose.model('Notification', this.config.NotificationSchema)
         )
+
+        Container.set(
+            FORGOT_PASSWORD_MODEL,
+            Mongoose.model('ForgotPassword', this.config.ForgotPasswordSchema)
+        )
     }
 
     registerNotificationChannels() {
@@ -185,14 +212,21 @@ class Kopter {
     }
 
     registerServices() {
-        Container.set(
-            USER_SERVICE,
-            new this.config.UserService(Container.get(USER_MODEL))
-        )
+        Container.set(USER_SERVICE, new this.config.UserService())
 
         Container.set(
             MAIL_SERVICE,
             new this.config.MailService(this.config.mail)
+        )
+
+        Container.set(
+            FORGOT_PASSWORD_SERVICE,
+            new this.config.ForgotPasswordService()
+        )
+
+        Container.set(
+            RESET_PASSWORD_SERVICE,
+            new this.config.ResetPasswordService()
         )
     }
 
@@ -278,6 +312,16 @@ class Kopter {
         router.post(
             '/login',
             asyncRequest(Container.get(LoginController).login)
+        )
+
+        router.post(
+            '/forgot-password',
+            asyncRequest(Container.get(ForgotPasswordController).forgotPassword)
+        )
+
+        router.put(
+            '/reset-password/:token',
+            asyncRequest(Container.get(ResetPasswordController).setNewPassword)
         )
     }
 

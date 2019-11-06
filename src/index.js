@@ -4,5 +4,6 @@ module.exports = {
     UserSchema: require('./models/user.model'),
     asyncRequest: require('./utils/async-request'),
     ExtendSchema: require('./utils/extend-schema'),
-    UserService: require('./services/user.service')
+    UserService: require('./services/user.service'),
+    ForgotPasswordService: require('./services/forgot.password.service')
 }

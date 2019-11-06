@@ -16,5 +16,10 @@ module.exports = {
     REGISTER_CONTROLLER: 'register.controller',
 
     NOTIFICATION_SERVICE: 'notification.service',
-    NOTIFICATION_CHANNELS: 'notification.channels'
+    NOTIFICATION_CHANNELS: 'notification.channels',
+
+    FORGOT_PASSWORD_SERVICE: 'forgot.password.service',
+    FORGOT_PASSWORD_MODEL: 'forgot.password.model',
+
+    RESET_PASSWORD_SERVICE: 'reset.password.service'
 }

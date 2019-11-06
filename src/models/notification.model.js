@@ -13,11 +13,11 @@ const NotificationSchema = new Mongoose.Schema({
         type: Object,
         required: true
     },
-    read_at: {
+    readAt: {
         type: Mongoose.Schema.Types.Date,
         required: false
     },
-    created_at: {
+    createdAt: {
         type: Mongoose.Schema.Types.Date,
         default: new Date(),
         required: false
