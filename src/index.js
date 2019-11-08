@@ -5,5 +5,5 @@ module.exports = {
     asyncRequest: require('./utils/async-request'),
     ExtendSchema: require('./utils/extend-schema'),
     UserService: require('./services/user.service'),
-    ForgotPasswordService: require('./services/forgot.password.service')
+    PasswordResetsService: require('./services/password.resets.service')
 }

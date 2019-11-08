@@ -41,15 +41,13 @@ class PasswordResetsService {
     }
 
     async forgotPassword(request, response) {
-        // validate data from frontend
         await this.validate(request.body)
-        // find user by email
+
         const user = await this.PasswordResetsService.findUserByEmail(
             request.body.email
         )
-        // generate tokenn for user
+
         const forgotPasswordToken = RandomString.generate(72)
-        // save token to database
         const tokenData = {
             token: forgotPasswordToken,
             user: user._id,
@@ -57,10 +55,9 @@ class PasswordResetsService {
         }
 
         const resetToken = await this.PasswordResetsService.saveToken(tokenData)
+
         // send email notification to user
 
-        // return an ok status code to user
-        //
         return this.successResponse(response, resetToken)
     }
 
@@ -83,7 +80,7 @@ class PasswordResetsService {
     }
 
     successResponse(response, msg) {
-        return response.created(msg)
+        return response.ok(msg)
     }
 }
 
