@@ -1,3 +1,7 @@
 import { UserService as DefaultUserService } from 'kopter'
 
-export default class UserService extends DefaultUserService {}
+export default class UserService extends DefaultUserService {
+    getJWtExpiration() {
+        return '24h'
+    }
+}

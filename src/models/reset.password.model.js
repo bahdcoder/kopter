@@ -1,6 +1,6 @@
 const Mongoose = require('mongoose')
 
-const ForgotPasswordSchema = new Mongoose.Schema({
+const PasswordResetsSchema = new Mongoose.Schema({
     token: {
         type: String,
         required: true
@@ -12,10 +12,9 @@ const ForgotPasswordSchema = new Mongoose.Schema({
         ref: 'User'
     },
     expiresAt: {
-        // install date-fns
         type: Date,
         required: true
     }
 })
 
-module.exports = ForgotPasswordSchema
+module.exports = PasswordResetsSchema

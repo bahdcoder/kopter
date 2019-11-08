@@ -19,7 +19,7 @@ module.exports = {
     NOTIFICATION_CHANNELS: 'notification.channels',
 
     FORGOT_PASSWORD_SERVICE: 'forgot.password.service',
-    FORGOT_PASSWORD_MODEL: 'forgot.password.model',
+    PASSWORD_RESETS_MODEL: 'password.resets.model',
 
-    RESET_PASSWORD_SERVICE: 'reset.password.service'
+    PASSWORD_RESETS_SERVICE: 'password.resets.service'
 }
