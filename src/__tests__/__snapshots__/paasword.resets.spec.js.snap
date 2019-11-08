@@ -10,6 +10,19 @@ Array [
 ]
 `;
 
+exports[`/auth/register validates email 1`] = `
+Object {
+  "code": "badRequest",
+  "data": Array [
+    Object {
+      "field": "email",
+      "message": "required validation failed on email",
+      "validation": "required",
+    },
+  ],
+}
+`;
+
 exports[`/auth/reset-password can reset password 1`] = `
 Array [
   "0",

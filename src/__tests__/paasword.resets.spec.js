@@ -69,3 +69,14 @@ test('/auth/reset-password can reset password', async () => {
     expect(response.body.code).toBe('ok')
     expect(Object.keys(response.body.data)).toMatchSnapshot()
 })
+
+test('/auth/register validates email', async () => {
+    const app = await new Kopter(defaultKopterConfig).init()
+
+    const response = await Request(app)
+        .post('/auth/forgot-password')
+        .send({})
+
+    expect(response.body.code).toBe('badRequest')
+    expect(response.body).toMatchSnapshot()
+})
