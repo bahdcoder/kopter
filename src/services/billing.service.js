@@ -16,6 +16,7 @@ class BillingService {
         this.isPaidPlan = this.isPaidPlan.bind(this)
         this.cardUpFront = this.cardUpFront.bind(this)
         this.createCustomer = this.createCustomer.bind(this)
+        this.forceCardOnTrial = this.forceCardOnTrial.bind(this)
         this.hasPaymentMethod = this.hasPaymentMethod.bind(this)
         this.hasEverSubscribedTo = this.hasEverSubscribedTo.bind(this)
     }
@@ -28,11 +29,11 @@ class BillingService {
         subscriptionOptions = {}
     }) {
         return await this.BillingProvider.createSubscription({
-            plan,
             userInstance,
             paymentMethod,
             fromRegistration,
             subscriptionOptions,
+            plan: this.getPlan(plan),
             billingConfig: this.kopterConfig[this.kopterConfig.billing.provider]
         })
     }
@@ -50,6 +51,14 @@ class BillingService {
 
     hasPaymentMethod(userInstance) {
         return !!userInstance.cardBrand
+    }
+
+    forceCardOnTrial() {
+        return (this.kopterConfig.billing || {}).forceCardOnTrial
+    }
+
+    trialDays() {
+        return (this.kopterConfig.billing || {}).trialDays
     }
 
     getPlanIds() {
@@ -79,7 +88,7 @@ class BillingService {
     }
 
     cardUpFront() {
-        return this.kopterConfig.billing.cardUpFront
+        return (this.kopterConfig.billing || {}).cardUpFront
     }
 
     async hasEverSubscribedTo(userInstance, stripePlan) {

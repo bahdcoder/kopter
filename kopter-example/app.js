@@ -20,23 +20,31 @@ new Kopter({
 
         provider: 'stripe',
 
-        cardUpFront: false
+        cardUpFront: true,
+
+        forceCardOnTrial: false
     },
 
     stripe: {
         plans: [
             {
+                name: 'Free',
+                id: 'plan_G8uq9K2ajMrlgB',
+                price: 0,
+                trialDays: 14
+            },
+            {
                 name: 'Basic',
                 id: 'basic',
                 price: 9,
-                trial: 7,
+                trialDays: 5,
                 interval: 'yearly'
             },
             {
                 name: 'Pro',
                 id: 'pro',
                 price: 29,
-                trial: 7,
+                trialDays: 14,
                 interval: 'monthly'
             }
         ]

@@ -59,10 +59,7 @@ class RegisterController {
 
         let subscription
 
-        if (
-            this.BillingService.cardUpFront() &&
-            this.BillingService.isPaidPlan(body.plan)
-        ) {
+        if (this.BillingService.cardUpFront()) {
             // if cardUpfront is true and user selected a paid plan,
             // we'll subscribe the user to the paid plan
             subscription = await this.BillingService.setupSubscription({
@@ -113,10 +110,7 @@ class RegisterController {
             )}`
         }
 
-        if (
-            this.BillingService.cardUpFront() &&
-            this.BillingService.isPaidPlan(data.plan)
-        ) {
+        if (this.BillingService.cardUpFront()) {
             validationRules.paymentMethod = 'required|string'
         }
 

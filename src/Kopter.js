@@ -168,7 +168,7 @@ class Kopter {
                 },
                 paymentIntentStatus: {
                     type: Mongoose.Schema.Types.String,
-                    required: true
+                    required: false
                 },
                 stripePlan: {
                     type: Mongoose.Schema.Types.String,

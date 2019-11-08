@@ -75,6 +75,8 @@ class StripeBillingProvider {
     prepareSubscriptionResponse(subscription) {
         const paymentIntent = subscription.latest_invoice.payment_intent
 
+        if (!paymentIntent) return {}
+
         // if the payment succeeded, no further action is required
         // if it failed and we require a new payment method, we'll return this status
         // to the frontend so a new payment method can be requested from the user
@@ -102,6 +104,7 @@ class StripeBillingProvider {
         plan,
         userInstance,
         paymentMethod,
+        billingConfig,
         subscriptionOptions,
         fromRegistration = false
     }) {
@@ -118,18 +121,20 @@ class StripeBillingProvider {
         }
 
         const subscription = await this.stripe.subscriptions.create({
-            items: [{ plan }],
+            items: [{ plan: plan.id }],
             customer: user.stripeId,
             expand: ['latest_invoice.payment_intent'],
+            trial_period_days: plan.trialDays || undefined,
             ...subscriptionOptions
         })
 
         await this.SubscriptionModel.create({
-            paymentIntentStatus:
-                subscription.latest_invoice.payment_intent.status,
+            paymentIntentStatus: (
+                subscription.latest_invoice.payment_intent || {}
+            ).status,
             stripeStatus: subscription.status,
             stripeId: subscription.id,
-            stripePlan: plan,
+            stripePlan: plan.id,
             trialEndsAt: null,
             endsAt: null,
             user: user._id
