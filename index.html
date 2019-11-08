@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Stripe</title>
+    <style>
+        .w-half {
+            width: 50%
+        }
+    </style>
+</head>
+<body>
+        <div class="w-half">
+                <div id="card-element">
+                <!-- Elements will create input elements here -->
+                </div>
+                
+                <!-- We'll put the error messages in this element -->
+                <div id="card-errors" role="alert"></div>
+
+                <button>Pay</button>
+        </div>
+    
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+    var stripe = Stripe('pk_test_1BPKoq7MtmjC5Fp4WdTardXR00GRALC5QW')
+    var elements = stripe.elements()       
+
+    // Set up Stripe.js and Elements to use in checkout form
+    var style = {
+        base: {
+            color: "#32325d",
+        }
+    }
+
+    var cardElement = elements.create("card", { style: style })
+
+    cardElement.mount("#card-element")
+
+    cardElement.addEventListener('change', ({ error }) => {
+        const displayError = document.getElementById('card-errors')
+        if (error) {
+            displayError.textContent = error.message
+        } else {
+            displayError.textContent = ''
+        }
+    })
+
+    const pay = async () => {
+        const { paymentMethod, error } = await stripe.createPaymentMethod('card', cardElement, {})
+    }
+
+    document.querySelector('button').addEventListener('click', pay)
+
+    </script>
+</body>
+</html>

@@ -7,7 +7,8 @@ const NotificationSchema = new Mongoose.Schema({
     },
     user: {
         type: Mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     data: {
         type: Object,

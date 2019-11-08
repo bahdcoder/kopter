@@ -37,6 +37,7 @@
         "object.omit": "^3.0.0",
         "randomstring": "^1.1.5",
         "reflect-metadata": "^0.1.13",
+        "stripe": "^7.11.0",
         "typedi": "^0.8.0"
     },
     "scripts": {

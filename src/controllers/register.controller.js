@@ -5,13 +5,21 @@ const { validateAll } = require('indicative/validator')
 const {
     EVENT_DISPATCHER,
     USER_SERVICE,
-    USER_REGISTERED
+    USER_REGISTERED,
+    BILLING_SERVICE
 } = require('../utils/constants')
 
 class RegisterController {
     constructor() {
         this.UserService = Container.get(USER_SERVICE)
         this.EventEmitter = Container.get(EVENT_DISPATCHER)
+        this.BillingService = Container.get(BILLING_SERVICE)
+
+        this.defaultValidationRules = {
+            name: 'string|max:40',
+            password: 'required|min:8|max:40',
+            email: 'required|email|max:40|unique'
+        }
 
         this.register = this.register.bind(this)
         this.validate = this.validate.bind(this)
@@ -25,23 +33,60 @@ class RegisterController {
      * Emits required events
      */
     async register(request, response) {
-        await this.validate(request.body)
+        const { body } = request
 
-        const user = await this.UserService.create(
-            this.creationData(request.body)
-        )
+        await this.validate(body)
+
+        // during user registration, let's check the billing settings
+
+        // if cardUpfront is false
+        //  we check if freeTrial is configured
+        // if freeTrial is configured, then we start a free trial for this user without a credit card
+
+        // if freeTrial is not configured, then we simply do absolutely nothing about billing
+
+        // if cardUpfront is true,
+        // we validate to make sure the user provided a selected plan
+        // if the selected plan is free
+        // we won't validate or ask user for a credit card. we'll just sign the user up
+        // if the selected plan is a paid plan
+        // we'll make sure we validate the paymentMethod and the plan.
+        // then we'll subscribe the user to a plan.
+        // if the subscription goes well, good !
+        // if the subscription fails, oh boy ! We'll think about this one.
+
+        const user = await this.UserService.create(this.creationData(body))
+
+        let subscription
+
+        if (
+            this.BillingService.cardUpFront() &&
+            this.BillingService.isPaidPlan(body.plan)
+        ) {
+            // if cardUpfront is true and user selected a paid plan,
+            // we'll subscribe the user to the paid plan
+            subscription = await this.BillingService.setupSubscription({
+                userInstance: user,
+                fromRegistration: true,
+                plan: body.plan,
+                paymentMethod: body.paymentMethod,
+                subscriptionOptions: {}
+            })
+        }
 
         const token = this.UserService.generateJWTForUser(user)
 
         this.EventEmitter.emit(USER_REGISTERED, user)
 
-        return this.successResponse(response, { user, token })
+        return this.successResponse(response, { user, token, subscription })
     }
 
     async validate(data) {
         await validateAll(
             data,
-            this.validationRules(),
+            this.BillingService.cardUpFront()
+                ? this.billingValidationRules(data)
+                : this.validationRules(data),
             this.customErrorMessages()
         )
     }
@@ -58,27 +103,51 @@ class RegisterController {
         }
     }
 
+    billingValidationRules(data) {
+        // do not require paymentToken if a free plan was selected by user
+        // do not even validate plans if the user is not providing credit card up front
+        const validationRules = {
+            ...this.defaultValidationRules,
+            plan: `required|string|in:${this.BillingService.getPlanIds().join(
+                ','
+            )}`
+        }
+
+        if (
+            this.BillingService.cardUpFront() &&
+            this.BillingService.isPaidPlan(data.plan)
+        ) {
+            validationRules.paymentMethod = 'required|string'
+        }
+
+        return validationRules
+    }
+
+    hasPaidPlan(request) {
+        if (!request.body.plan) return false
+
+        const plan = this.BillingService.getPlan(request.body.plan)
+
+        return plan && plan.price > 0
+    }
+
     /**
      * Get the validation rules for the
      * user registration
      */
     validationRules() {
-        return {
-            email: 'required|email|max:40|unique',
-            firstName: 'string|max:40',
-            lastName: 'string|max:40',
-            password: 'required|min:8|max:40'
-        }
+        return this.defaultValidationRules
     }
 
     customErrorMessages() {
         return {}
     }
 
-    successResponse(response, { user, token }) {
+    successResponse(response, { user, token, subscription }) {
         return response.created({
             user: this.UserService.serializeUser(user),
-            token
+            token,
+            subscription
         })
     }
 }

@@ -13,6 +13,33 @@ new Kopter({
         ethereal: {
             driver: 'ethereal'
         }
+    },
+
+    billing: {
+        currency: 'USD',
+
+        provider: 'stripe',
+
+        cardUpFront: false
+    },
+
+    stripe: {
+        plans: [
+            {
+                name: 'Basic',
+                id: 'basic',
+                price: 9,
+                trial: 7,
+                interval: 'yearly'
+            },
+            {
+                name: 'Pro',
+                id: 'pro',
+                price: 29,
+                trial: 7,
+                interval: 'monthly'
+            }
+        ]
     }
 })
     .init()

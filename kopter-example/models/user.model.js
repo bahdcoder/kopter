@@ -1,10 +1,10 @@
 import { ExtendSchema, UserSchema as DefaultUserSchema } from 'kopter'
 
 const UserSchema = ExtendSchema(DefaultUserSchema, {
-    stripeKey: {
+    profilePhoto: {
         type: String,
         required: false,
-        default: 'sk_test'
+        default: 'https://github.com/avatar.png'
     }
 })
 

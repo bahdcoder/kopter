@@ -16,13 +16,17 @@ const { EventEmitter2 } = require('eventemitter2')
 const asyncRequest = require('./utils/async-request')
 
 const {
-    EVENT_DISPATCHER,
-    X_POWERED_BY,
     USER_MODEL,
     USER_SERVICE,
     MAIL_SERVICE,
+    X_POWERED_BY,
+    KOPTER_CONFIG,
     USER_REGISTERED,
+    BILLING_SERVICE,
+    EVENT_DISPATCHER,
+    BILLING_PROVIDER,
     NOTIFICATION_MODEL,
+    SUBSCRIPTION_MODEL,
     NOTIFICATION_SERVICE,
     NOTIFICATION_CHANNELS,
     PASSWORD_RESETS_MODEL,
@@ -31,11 +35,15 @@ const {
 } = require('./utils/constants')
 const UserSchema = require('./models/user.model')
 const StatusCodes = require('./utils/status-codes')
+const ExtendSchema = require('./utils/extend-schema')
 const UserService = require('./services/user.service')
 const MailService = require('./services/mail.service')
+const BillingService = require('./services/billing.service')
 const NotificationSchema = require('./models/notification.model')
+const SubscriptionSchema = require('./models/subscription.model')
 const LoginController = require('./controllers/login.controller')
 const PasswordResetsSchema = require('./models/reset.password.model')
+const StripeBillingProvider = require('./billing-providers/stripe')
 const NotificationService = require('./services/notification.service')
 const RegisterController = require('./controllers/register.controller')
 const MailNotificationChannel = require('./notification-channels/mail')
@@ -54,10 +62,13 @@ class Kopter {
             cors: {},
             UserSchema,
             UserService,
-            PasswordResetsSchema,
             MailService,
-            PasswordResetsService,
+            BillingService,
+            SubscriptionSchema,
             NotificationSchema,
+            PasswordResetsSchema,
+            PasswordResetsService,
+            StripeBillingProvider,
             notificationChannels: [
                 MailNotificationChannel,
                 DatabaseNotificationChannel
@@ -73,6 +84,13 @@ class Kopter {
                 connection: 'ethereal',
                 viewEngine: 'handlebars'
             },
+            // billing: {
+            //     currency: 'USD',
+
+            //     provider: 'stripe',
+
+            //     cardUpFront: false,
+            // },
             disableRegistrationEventListeners: false,
             disablePasswordResetsEventListeners: false,
             queue: {
@@ -106,22 +124,137 @@ class Kopter {
             'UserService',
             'MailService',
             'NotificationSchema',
-            'PasswordResetsSchema'
+            'BillingService',
+            'NotificationSchema',
+            'SubscriptionSchema',
+            'PasswordResetsSchema',
+            'StripeBillingProvider',
         ])
 
         const plainDefaultConfig = Omit(this.config, [
-            'NotificationSchema',
             'UserSchema',
             'UserService',
             'MailService',
-            'PasswordResetsSchema'
+            'BillingService',
+            'NotificationSchema',
+            'SubscriptionSchema',
+            'PasswordResetsSchema',
+            'StripeBillingProvider',
         ])
+
+        /**
+         *
+         * Let's add more fields to the user schema,
+         * depending on the billing of the user
+         *
+         * Stripe billing
+         *
+         * Braintree billing
+         *
+         * Paystack billing
+         */
+        let billingFields = {}
+        let subscriptionFields = {}
+
+        if (config.billing && config.billing.provider === 'stripe') {
+            subscriptionFields = {
+                stripeId: {
+                    type: Mongoose.Schema.Types.String,
+                    required: true
+                },
+                stripeStatus: {
+                    type: Mongoose.Schema.Types.String,
+                    required: true
+                },
+                paymentIntentStatus: {
+                    type: Mongoose.Schema.Types.String,
+                    required: true
+                },
+                stripePlan: {
+                    type: Mongoose.Schema.Types.String,
+                    required: true
+                },
+                quantity: {
+                    type: Mongoose.Schema.Types.Number,
+                    required: false,
+                    default: 1
+                },
+                trialEndsAt: {
+                    type: Mongoose.Schema.Types.Date,
+                    required: false
+                },
+                endsAt: {
+                    type: Mongoose.Schema.Types.Date,
+                    required: false
+                }
+            }
+
+            billingFields = {
+                stripeId: {
+                    type: String,
+                    index: true,
+                    required: false
+                },
+                cardBrand: {
+                    type: String,
+                    required: false
+                },
+                cardLastFour: {
+                    type: String,
+                    required: false
+                },
+                trialEndsAt: {
+                    type: Date,
+                    required: false
+                },
+                billingInformation: new Mongoose.Schema({
+                    address: {
+                        type: String,
+                        required: false
+                    },
+                    addressLine2: {
+                        type: String,
+                        required: false
+                    },
+                    phone: {
+                        type: String,
+                        required: false
+                    },
+                    country: {
+                        type: String,
+                        required: false
+                    },
+                    city: {
+                        type: String,
+                        required: false
+                    },
+                    zip: {
+                        type: String,
+                        required: false
+                    },
+                    extraInformation: {
+                        type: Object,
+                        required: false
+                    }
+                })
+            }
+        }
+
+        const UserSchemaWithBilling = ExtendSchema(
+            config.UserSchema || this.config.UserSchema,
+            billingFields
+        )
+
+        const SubscriptionSchemaWithProvider = ExtendSchema(
+            config.SubscriptionSchema || this.config.SubscriptionSchema,
+            subscriptionFields
+        )
 
         /**
          * Merge the config with the default one.
          */
         this.config = {
-            UserSchema: config.UserSchema || this.config.UserSchema,
+            UserSchema: UserSchemaWithBilling,
             UserService: config.UserService || this.config.UserService,
             MailService: config.MailService || this.config.MailService,
             PasswordResetsSchema:
@@ -129,10 +262,17 @@ class Kopter {
             PasswordResetsService:
                 config.PasswordResetsService ||
                 this.config.PasswordResetsService,
+            BillingService: config.BillingService || this.config.BillingService,
             NotificationSchema:
                 config.NotificationSchema || this.config.NotificationSchema,
+            SubscriptionSchema: SubscriptionSchemaWithProvider,
+            StripeBillingProvider:
+                config.StripeBillingProvider ||
+                this.config.StripeBillingProvider,
             ...DeepMerge(plainDefaultConfig, plainConfig)
         }
+
+        Container.set(KOPTER_CONFIG, this.config)
     }
 
     /**
@@ -153,6 +293,20 @@ class Kopter {
         this.config.queue.workers.forEach(worker => {
             Container.set(worker.name, new Bull(worker.name))
         })
+    }
+
+    registerBillingProvider() {
+        if (!this.config.billing || !this.config.billing.provider) return
+
+        switch (this.config.billing.provider) {
+            case 'stripe':
+                Container.set(
+                    BILLING_PROVIDER,
+                    new this.config.StripeBillingProvider()
+                )
+            default:
+                break
+        }
     }
 
     /**
@@ -198,6 +352,11 @@ class Kopter {
             PASSWORD_RESETS_MODEL,
             Mongoose.model('ResetPassword', this.config.PasswordResetsSchema)
         )
+        
+        Container.set(
+            SUBSCRIPTION_MODEL,
+            Mongoose.model('Subscription', this.config.SubscriptionSchema)
+        )
     }
 
     registerNotificationChannels() {
@@ -230,6 +389,8 @@ class Kopter {
             PASSWORD_RESETS_SERVICE,
             new this.config.PasswordResetsService()
         )
+        
+        Container.set(BILLING_SERVICE, new this.config.BillingService())
     }
 
     registerRegistrationEventListeners() {
@@ -350,6 +511,8 @@ class Kopter {
 
         this.registerModelsIntoContainer()
 
+        this.registerBillingProvider()
+
         this.registerServices()
 
         this.registerNotificationChannels()
@@ -392,6 +555,8 @@ class Kopter {
                      * Register all mongoose models into container
                      */
                     this.registerModelsIntoContainer()
+
+                    this.registerBillingProvider()
 
                     this.registerServices()
 

@@ -1,10 +1,18 @@
 module.exports = {
     USER_MODEL: 'user.model',
+    NOTIFICATION_MODEL: 'notification.model',
+    SUBSCRIPTION_MODEL: 'subscription.model',
 
     X_POWERED_BY: 'x-powered-by',
 
+    KOPTER_CONFIG: 'kopter.config',
+
+    BILLING_PROVIDER: 'billing.provider',
+    STRIPE_BILLING_PROVIDER: 'stripe.billing.provider',
+
     USER_SERVICE: 'user.service',
     MAIL_SERVICE: 'mail.service',
+    BILLING_SERVICE: 'billing.service',
 
     USER_LOGGED_IN: 'user.loggedin',
     PASSWORD_RESET: 'password.reset',
