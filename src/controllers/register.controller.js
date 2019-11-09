@@ -59,17 +59,33 @@ class RegisterController {
 
         let subscription
 
-        if (this.BillingService.cardUpFront()) {
+        // s1 -> cardUpfront and must select plan
+        // s2 -> cardUpfront and free trials
+        // s3 -> no card upfront and must selected plan  to start free trial
+        // s4 -> no card upfront and must not select plan
+
+        if (this.BillingService.cardUpFront() && body.plan) {
             // if cardUpfront is true and user selected a paid plan,
             // we'll subscribe the user to the paid plan
             subscription = await this.BillingService.setupSubscription({
+                plan: body.plan,
                 userInstance: user,
                 fromRegistration: true,
-                plan: body.plan,
                 paymentMethod: body.paymentMethod,
                 subscriptionOptions: {}
             })
         }
+
+        // if the user was forced to provide their credit card, but not necessarily select a plan
+        // we'll simply add them as a customer
+        if (this.BillingService.cardUpFront() && !body.plan) {
+            await this.BillingService.createCustomer({
+                userInstance: user,
+                ...body
+            })
+        }
+
+        // if the user was not required to select a card up front, but selected a plan, we simply ignore
 
         const token = this.UserService.generateJWTForUser(user)
 
@@ -103,18 +119,15 @@ class RegisterController {
     billingValidationRules(data) {
         // do not require paymentToken if a free plan was selected by user
         // do not even validate plans if the user is not providing credit card up front
-        const validationRules = {
+        return {
             ...this.defaultValidationRules,
-            plan: `required|string|in:${this.BillingService.getPlanIds().join(
-                ','
-            )}`
+            plan: `${
+                this.BillingService.mustSelectPlan() ? 'required|' : ''
+            }string|in:${this.BillingService.getPlanIds().join(',')}`,
+            paymentMethod: this.BillingService.cardUpFront()
+                ? 'required|string'
+                : 'string'
         }
-
-        if (this.BillingService.cardUpFront()) {
-            validationRules.paymentMethod = 'required|string'
-        }
-
-        return validationRules
     }
 
     hasPaidPlan(request) {

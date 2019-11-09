@@ -16,6 +16,7 @@ class BillingService {
         this.isPaidPlan = this.isPaidPlan.bind(this)
         this.cardUpFront = this.cardUpFront.bind(this)
         this.createCustomer = this.createCustomer.bind(this)
+        this.mustSelectPlan = this.mustSelectPlan.bind(this)
         this.forceCardOnTrial = this.forceCardOnTrial.bind(this)
         this.hasPaymentMethod = this.hasPaymentMethod.bind(this)
         this.hasEverSubscribedTo = this.hasEverSubscribedTo.bind(this)
@@ -38,10 +39,15 @@ class BillingService {
         })
     }
 
-    async createCustomer(userInstance, customerOptions = {}) {
+    async createCustomer({
+        userInstance,
+        paymentMethod,
+        fromRegistration = false
+    }) {
         return await this.BillingProvider.createCustomer(
             userInstance,
-            customerOptions
+            paymentMethod,
+            fromRegistration
         )
     }
 
@@ -59,6 +65,10 @@ class BillingService {
 
     trialDays() {
         return (this.kopterConfig.billing || {}).trialDays
+    }
+
+    mustSelectPlan() {
+        return (this.kopterConfig.billing || {}).mustSelectPlan
     }
 
     getPlanIds() {

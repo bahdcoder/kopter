@@ -22,7 +22,7 @@ new Kopter({
 
         cardUpFront: true,
 
-        forceCardOnTrial: false
+        mustSelectPlan: false
     },
 
     stripe: {
