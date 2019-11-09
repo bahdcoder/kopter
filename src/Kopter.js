@@ -26,7 +26,8 @@ const {
     NOTIFICATION_SERVICE,
     NOTIFICATION_CHANNELS,
     PASSWORD_RESETS_MODEL,
-    PASSWORD_RESETS_SERVICE
+    PASSWORD_RESETS_SERVICE,
+    PASSWORD_RESET
 } = require('./utils/constants')
 const UserSchema = require('./models/user.model')
 const StatusCodes = require('./utils/status-codes')
@@ -73,6 +74,7 @@ class Kopter {
                 viewEngine: 'handlebars'
             },
             disableRegistrationEventListeners: false,
+            disablePasswordResetsEventListeners: false,
             queue: {
                 workers: [
                     {
@@ -219,13 +221,26 @@ class Kopter {
 
     registerRegistrationEventListeners() {
         if (this.config.disableRegistrationEventListeners) return
+        this.registerEventEmitters(
+            'confirm-email',
+            USER_REGISTERED,
+            'Welcome to Kopter !!!'
+        )
+    }
 
+    registerPasswordResetEventListener() {
+        if (this.config.disablePasswordResetsEventListeners) return
+        this.registerEventEmitters(
+            'password-reset',
+            PASSWORD_RESET,
+            'Reset Password !!!'
+        )
+    }
+
+    registerEventEmitters(mailName, event, subject) {
         const config = this.config.mail
 
-        Container.get(EVENT_DISPATCHER).on(USER_REGISTERED, async user => {
-            const mailName = 'confirm-email'
-            // check if the user has created a confirm-email mail in their
-            // configured views folder
+        Container.get(EVENT_DISPATCHER).on(event, async user => {
             const mailFolder = process.cwd() + config.views
 
             const customMailConfig = {}
@@ -236,13 +251,11 @@ class Kopter {
                 customMailConfig.views = Path.resolve(__dirname, 'mails')
             }
 
-            // if they have, then use that
-            // if not, then use the default in the mails folder
             Container.get('mails.queue').add({
                 data: user,
                 mailName,
                 customMailConfig,
-                subject: 'Welcome to Kopter !!!',
+                subject,
                 recipients: user.email
             })
         })
@@ -372,6 +385,8 @@ class Kopter {
                     this.registerNotificationChannels()
 
                     this.registerRegistrationEventListeners()
+
+                    this.registerPasswordResetEventListener()
 
                     this.extendIndicative()
 

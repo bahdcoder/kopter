@@ -8,6 +8,7 @@ module.exports = {
     MAIL_SERVICE: 'mail.service',
 
     USER_LOGGED_IN: 'user.loggedin',
+    PASSWORD_RESET: 'password.reset',
 
     USER_REGISTERED: 'user.registered',
     EVENT_DISPATCHER: 'event.dispatcher',
@@ -18,8 +19,6 @@ module.exports = {
     NOTIFICATION_SERVICE: 'notification.service',
     NOTIFICATION_CHANNELS: 'notification.channels',
 
-    FORGOT_PASSWORD_SERVICE: 'forgot.password.service',
     PASSWORD_RESETS_MODEL: 'password.resets.model',
-
     PASSWORD_RESETS_SERVICE: 'password.resets.service'
 }

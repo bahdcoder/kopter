@@ -49,7 +49,6 @@ class PasswordResetsService {
     }
 
     async deleteToken(token) {
-        // const resetToken = this.PasswordResetsModel.findOne({ token })
         await this.PasswordResetsModel.deleteOne({ token })
     }
 

@@ -3,11 +3,15 @@ const { Container } = require('typedi')
 const { validateAll } = require('indicative/validator')
 const RandomString = require('randomstring')
 const addMinutes = require('date-fns/addMinutes')
-const addSeconds = require('date-fns/addSeconds')
-const { PASSWORD_RESETS_SERVICE } = require('../utils/constants')
+const {
+    PASSWORD_RESETS_SERVICE,
+    PASSWORD_RESET,
+    EVENT_DISPATCHER
+} = require('../utils/constants')
 
 class PasswordResetsService {
     constructor() {
+        this.EventEmitter = Container.get(EVENT_DISPATCHER)
         this.PasswordResetsService = Container.get(PASSWORD_RESETS_SERVICE)
 
         this.setNewPassword = this.setNewPassword.bind(this)
@@ -55,8 +59,11 @@ class PasswordResetsService {
         }
 
         const resetToken = await this.PasswordResetsService.saveToken(tokenData)
-
         // send email notification to user
+        this.EventEmitter.emit(PASSWORD_RESET, {
+            token: tokenData.token,
+            ...user
+        })
 
         return this.successResponse(response, resetToken)
     }
