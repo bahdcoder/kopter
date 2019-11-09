@@ -19,6 +19,7 @@ class BillingService {
         this.mustSelectPlan = this.mustSelectPlan.bind(this)
         this.forceCardOnTrial = this.forceCardOnTrial.bind(this)
         this.hasPaymentMethod = this.hasPaymentMethod.bind(this)
+        this.cancelSubscription = this.cancelSubscription.bind(this)
         this.hasEverSubscribedTo = this.hasEverSubscribedTo.bind(this)
     }
 
@@ -36,6 +37,14 @@ class BillingService {
             subscriptionOptions,
             plan: this.getPlan(plan),
             billingConfig: this.kopterConfig[this.kopterConfig.billing.provider]
+        })
+    }
+
+    async cancelSubscription({ userInstance, plan, subscription }) {
+        return await this.BillingProvider.cancelSubscription({
+            userInstance,
+            subscription,
+            plan: this.getPlan(plan)
         })
     }
 

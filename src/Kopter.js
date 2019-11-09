@@ -38,6 +38,7 @@ const StatusCodes = require('./utils/status-codes')
 const ExtendSchema = require('./utils/extend-schema')
 const UserService = require('./services/user.service')
 const MailService = require('./services/mail.service')
+const jwtAuthMiddleware = require('./middleware/jwt-auth')
 const BillingService = require('./services/billing.service')
 const NotificationSchema = require('./models/notification.model')
 const SubscriptionSchema = require('./models/subscription.model')
@@ -48,6 +49,7 @@ const NotificationService = require('./services/notification.service')
 const RegisterController = require('./controllers/register.controller')
 const MailNotificationChannel = require('./notification-channels/mail')
 const PasswordResetsService = require('./services/password.resets.service')
+const SubscriptionController = require('./controllers/subscription.controller')
 const DatabaseNotificationChannel = require('./notification-channels/database')
 const PasswordResetsController = require('./controllers/password.resets.controller')
 
@@ -449,6 +451,14 @@ class Kopter {
         return router
     }
 
+    getSubscriptionsRouter() {
+        const router = Express.Router()
+
+        this.app.use('/subscriptions', router)
+
+        return router
+    }
+
     extendIndicative() {
         extend('unique', {
             async: true,
@@ -475,7 +485,17 @@ class Kopter {
         })
     }
 
-    registerRoutes() {
+    registerSubscriptionRoutes() {
+        const router = this.getSubscriptionsRouter()
+
+        router.put(
+            '/cancel',
+            jwtAuthMiddleware,
+            asyncRequest(Container.get(SubscriptionController).cancel)
+        )
+    }
+
+    registerAuthRoutes() {
         const router = this.getAuthRouter()
 
         router.post(
@@ -586,7 +606,9 @@ class Kopter {
                      */
                     if (this.config.cors) this.registerCors()
 
-                    this.registerRoutes()
+                    this.registerAuthRoutes()
+
+                    this.registerSubscriptionRoutes()
 
                     return this.app
                 })

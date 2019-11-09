@@ -1,5 +1,6 @@
 const Stripe = require('stripe')
 const { Container } = require('typedi')
+const fromUnixTime = require('date-fns/fromUnixTime')
 const { USER_MODEL, SUBSCRIPTION_MODEL } = require('../utils/constants')
 
 class StripeBillingProvider {
@@ -15,6 +16,7 @@ class StripeBillingProvider {
         this.createSetupIntent = this.createSetupIntent.bind(this)
         this.getPaymentMethods = this.getPaymentMethods.bind(this)
         this.createSubscription = this.createSubscription.bind(this)
+        this.cancelSubscription = this.cancelSubscription.bind(this)
         this.prepareSubscriptionResponse = this.prepareSubscriptionResponse.bind(
             this
         )
@@ -70,6 +72,26 @@ class StripeBillingProvider {
 
             throw error
         }
+    }
+
+    async cancelSubscription({ userInstance, plan, subscription }) {
+        const stripeSubscription = await this.stripe.subscriptions.update(
+            subscription.stripeId,
+            {
+                cancel_at_period_end: true
+            }
+        )
+
+        console.log(
+            '______________________________________---__',
+            stripeSubscription
+        )
+
+        subscription.endsAt = fromUnixTime(
+            stripeSubscription.current_period_end
+        )
+
+        await subscription.save()
     }
 
     prepareSubscriptionResponse(subscription) {
@@ -135,7 +157,9 @@ class StripeBillingProvider {
             stripeStatus: subscription.status,
             stripeId: subscription.id,
             stripePlan: plan.id,
-            trialEndsAt: null,
+            trialEndsAt: plan.trialDays
+                ? fromUnixTime(subscription.trial_end)
+                : null,
             endsAt: null,
             user: user._id
         })

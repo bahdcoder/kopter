@@ -18,7 +18,7 @@ module.exports = jwtAuthMiddleware = async (request, response, next) => {
         _id: user._id
     })
 
-    request.authUser = authUser
+    request.user = authUser
 
     next()
 }
