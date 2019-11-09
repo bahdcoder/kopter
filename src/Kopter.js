@@ -233,7 +233,7 @@ class Kopter {
         this.registerEventEmitters(
             'password-reset',
             PASSWORD_RESET,
-            'Reset Password !!!'
+            'Reset Password !'
         )
     }
 
