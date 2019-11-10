@@ -57,7 +57,7 @@ class PasswordResetsController {
             ...user
         })
 
-        return this.successResponse(response, resetToken)
+        return this.successResponse(response, 'password reset email sent')
     }
 
     async validate(data) {

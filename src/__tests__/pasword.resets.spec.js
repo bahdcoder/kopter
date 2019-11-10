@@ -4,7 +4,7 @@ const Kopter = require('../Kopter')
 const Request = require('supertest')
 const Mongoose = require('mongoose')
 const { Container } = require('typedi')
-const { USER_MODEL } = require('../utils/constants')
+const { USER_MODEL, PASSWORD_RESETS_MODEL } = require('../utils/constants')
 const { PASSWORD_RESETS_SERVICE } = require('../utils/constants')
 
 process.env.JWT_SECRET = 'shhh'
@@ -23,6 +23,7 @@ const defaultKopterConfig = {
 }
 
 afterAll(async () => {
+    await Container.get(USER_MODEL).deleteMany({})
     await Mongoose.connection.close()
 })
 
@@ -32,7 +33,7 @@ const generateFakeUser = () => ({
     password: Bcrypt.hashSync('password')
 })
 
-test('/auth/forgot-password can get a reset token', async () => {
+test('/auth/forgot-password can send forget password email', async () => {
     const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
@@ -45,29 +46,68 @@ test('/auth/forgot-password can get a reset token', async () => {
         })
 
     expect(response.body.code).toBe('ok')
-    expect(Object.keys(response.body.data)).toMatchSnapshot()
+    expect(response.body.data).toMatchSnapshot()
+})
+
+test('/auth/forgot-password does not send forget password email', async () => {
+    const app = await new Kopter(defaultKopterConfig).init()
+
+    const response = await Request(app)
+        .post('/auth/forgot-password')
+        .send({
+            email: 'email_does_not_exist@gmail.com'
+        })
+
+    expect(response.body.code).toBe('badRequest')
+    expect(response.body.data).toMatchSnapshot()
 })
 
 test('/auth/reset-password can reset password', async () => {
     const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
-    await Container.get(USER_MODEL).create(user)
+    const newUser = await Container.get(USER_MODEL).create(user)
 
-    const resetToken = await Request(app)
+    await Request(app)
+        .post('/auth/forgot-password')
+        .send({
+            email: user.email
+        })
+
+    const resetToken = await Container.get(PASSWORD_RESETS_MODEL).findOne({
+        user: newUser._id
+    })
+
+    const response = await Request(app)
+        .put(`/auth/reset-password/${resetToken.token}`)
+        .send({
+            password: 'password'
+        })
+
+    expect(response.body.code).toBe('ok')
+    expect(response.body.data).toMatchSnapshot()
+})
+
+test('/auth/reset-password does not reset password for wrong token', async () => {
+    const app = await new Kopter(defaultKopterConfig).init()
+
+    const user = generateFakeUser()
+    const newUser = await Container.get(USER_MODEL).create(user)
+
+    await Request(app)
         .post('/auth/forgot-password')
         .send({
             email: user.email
         })
 
     const response = await Request(app)
-        .put(`/auth/reset-password/${resetToken.body.data.token}`)
+        .put(`/auth/reset-password/wrong_token`)
         .send({
             password: 'password'
         })
 
-    expect(response.body.code).toBe('ok')
-    expect(Object.keys(response.body.data)).toMatchSnapshot()
+    expect(response.body.code).toBe('badRequest')
+    expect(response.body.data).toMatchSnapshot()
 })
 
 test('/auth/register validates email', async () => {

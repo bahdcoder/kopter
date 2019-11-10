@@ -1,5 +1,5 @@
-const Mongoose = require('mongoose')
 const Kopter = require('../Kopter')
+const Mongoose = require('mongoose')
 
 const defaultKopterConfig = {}
 

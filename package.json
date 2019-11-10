@@ -22,6 +22,7 @@
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.19.0",
         "bull": "^3.11.0",
+        "codacy-coverage": "^3.4.0",
         "cors": "^2.8.5",
         "date-fns": "^2.6.0",
         "deepmerge": "^4.2.2",
@@ -40,6 +41,8 @@
     },
     "scripts": {
         "watch": "nodemon src/",
+        "test": "jest --verbose --coverage",
+        "coverage": "yarn test && cat ./coverage/lcov.info | codacy-coverage",
         "prettier": "prettier --write './**/*.{js,ts,json}'"
     },
     "husky": {

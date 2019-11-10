@@ -21,6 +21,7 @@ const defaultKopterConfig = {
 }
 
 afterAll(async () => {
+    await Container.get(USER_MODEL).deleteMany({})
     await Mongoose.connection.close()
 })
 
