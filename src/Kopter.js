@@ -493,6 +493,18 @@ class Kopter {
             jwtAuthMiddleware,
             asyncRequest(Container.get(SubscriptionController).cancel)
         )
+
+        router.put(
+            '/resume',
+            jwtAuthMiddleware,
+            asyncRequest(Container.get(SubscriptionController).resume)
+        )
+
+        router.put(
+            '/switch',
+            jwtAuthMiddleware,
+            asyncRequest(Container.get(SubscriptionController).switch)
+        )
     }
 
     registerAuthRoutes() {

@@ -4,6 +4,8 @@ const {
     KOPTER_CONFIG,
     SUBSCRIPTION_MODEL
 } = require('../utils/constants')
+const autobind = require('../utils/autobind')
+const isFuture = require('date-fns/isFuture')
 
 class BillingService {
     constructor() {
@@ -11,16 +13,7 @@ class BillingService {
         this.BillingProvider = Container.get(BILLING_PROVIDER)
         this.SubscriptionModel = Container.get(SUBSCRIPTION_MODEL)
 
-        this.plans = this.plans.bind(this)
-        this.getPlan = this.getPlan.bind(this)
-        this.isPaidPlan = this.isPaidPlan.bind(this)
-        this.cardUpFront = this.cardUpFront.bind(this)
-        this.createCustomer = this.createCustomer.bind(this)
-        this.mustSelectPlan = this.mustSelectPlan.bind(this)
-        this.forceCardOnTrial = this.forceCardOnTrial.bind(this)
-        this.hasPaymentMethod = this.hasPaymentMethod.bind(this)
-        this.cancelSubscription = this.cancelSubscription.bind(this)
-        this.hasEverSubscribedTo = this.hasEverSubscribedTo.bind(this)
+        autobind(BillingService, this)
     }
 
     async setupSubscription({
@@ -45,6 +38,26 @@ class BillingService {
             userInstance,
             subscription,
             plan: this.getPlan(plan)
+        })
+    }
+
+    async resumeSubscription({ user, subscription }) {
+        return await this.BillingProvider.resumeSubscription({
+            user,
+            subscription
+        })
+    }
+
+    onTrial(subscription) {
+        return subscription.trialEndsAt && isFuture(subscription.trialEndsAt)
+    }
+
+    async switchSubscriptionPlan({ user, plan, currentSubscription }) {
+        return await this.BillingProvider.switchSubscriptionPlan({
+            user,
+            plan: this.getPlan(plan),
+            currentSubscription,
+            onTrial: this.onTrial(currentSubscription)
         })
     }
 

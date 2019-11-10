@@ -1,5 +1,6 @@
 const Stripe = require('stripe')
 const { Container } = require('typedi')
+const autobind = require('../utils/autobind')
 const fromUnixTime = require('date-fns/fromUnixTime')
 const { USER_MODEL, SUBSCRIPTION_MODEL } = require('../utils/constants')
 
@@ -10,16 +11,7 @@ class StripeBillingProvider {
         this.UserModel = Container.get(USER_MODEL)
         this.SubscriptionModel = Container.get(SUBSCRIPTION_MODEL)
 
-        this.updateCustomer = this.updateCustomer.bind(this)
-        this.createCustomer = this.createCustomer.bind(this)
-        this.addPaymentMethod = this.addPaymentMethod.bind(this)
-        this.createSetupIntent = this.createSetupIntent.bind(this)
-        this.getPaymentMethods = this.getPaymentMethods.bind(this)
-        this.createSubscription = this.createSubscription.bind(this)
-        this.cancelSubscription = this.cancelSubscription.bind(this)
-        this.prepareSubscriptionResponse = this.prepareSubscriptionResponse.bind(
-            this
-        )
+        autobind(StripeBillingProvider, this)
     }
 
     async createCustomer(
@@ -82,14 +74,56 @@ class StripeBillingProvider {
             }
         )
 
-        console.log(
-            '______________________________________---__',
-            stripeSubscription
-        )
-
         subscription.endsAt = fromUnixTime(
             stripeSubscription.current_period_end
         )
+
+        await subscription.save()
+    }
+
+    async switchSubscriptionPlan({ user, plan, currentSubscription, onTrial }) {
+        const stripeSubscription = await this.stripe.subscriptions.retrieve(
+            currentSubscription.stripeId
+        )
+
+        const updatedSubscription = await this.stripe.subscriptions.update(
+            currentSubscription.stripeId,
+            {
+                cancel_at_period_end: false,
+                items: [
+                    {
+                        id: stripeSubscription.items.data[0].id,
+                        plan: plan.id
+                    }
+                ]
+            }
+        )
+
+        currentSubscription.endsAt = null
+        currentSubscription.stripePlan = plan.id
+        currentSubscription.stripeStatus = updatedSubscription.status
+
+        await currentSubscription.save()
+
+        await this.generateCustomerInvoice(user)
+    }
+
+    async generateCustomerInvoice(user) {
+        if (!user || !user.stripeId) return false
+
+        await this.stripe.invoices.create({
+            customer: user.stripeId
+        })
+
+        return true
+    }
+
+    async resumeSubscription({ user, subscription }) {
+        await this.stripe.subscriptions.update(subscription.stripeId, {
+            cancel_at_period_end: false
+        })
+
+        subscription.endsAt = null
 
         await subscription.save()
     }
