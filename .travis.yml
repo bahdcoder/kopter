@@ -11,10 +11,8 @@ cache:
       - node_modules
 
 scripts:
-    - yarn test
+    - yarn coverage
 
 services:
     - redis-server
     - mongodb
-
-after_success:  yarn coverage
