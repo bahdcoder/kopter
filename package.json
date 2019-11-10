@@ -8,6 +8,7 @@
     "license": "MIT",
     "private": false,
     "devDependencies": {
+        "coveralls": "^3.0.7",
         "faker": "^4.1.0",
         "fs-extra": "^8.1.0",
         "husky": "^3.0.9",
@@ -22,7 +23,6 @@
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.19.0",
         "bull": "^3.11.0",
-        "codacy-coverage": "^3.4.0",
         "cors": "^2.8.5",
         "date-fns": "^2.6.0",
         "deepmerge": "^4.2.2",
@@ -42,7 +42,7 @@
     "scripts": {
         "watch": "nodemon src/",
         "test": "jest --verbose --coverage --forceExit",
-        "coverage": "yarn test && cat ./coverage/lcov.info | codacy-coverage",
+        "coverage": "yarn test && cat ./coverage/lcov.info | coveralls",
         "prettier": "prettier --write './**/*.{js,ts,json}'"
     },
     "husky": {
