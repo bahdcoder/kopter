@@ -24,7 +24,10 @@ const {
     USER_REGISTERED,
     NOTIFICATION_MODEL,
     NOTIFICATION_SERVICE,
-    NOTIFICATION_CHANNELS
+    NOTIFICATION_CHANNELS,
+    PASSWORD_RESETS_MODEL,
+    PASSWORD_RESETS_SERVICE,
+    PASSWORD_RESET
 } = require('./utils/constants')
 const UserSchema = require('./models/user.model')
 const StatusCodes = require('./utils/status-codes')
@@ -32,10 +35,13 @@ const UserService = require('./services/user.service')
 const MailService = require('./services/mail.service')
 const NotificationSchema = require('./models/notification.model')
 const LoginController = require('./controllers/login.controller')
+const PasswordResetsSchema = require('./models/reset.password.model')
 const NotificationService = require('./services/notification.service')
 const RegisterController = require('./controllers/register.controller')
 const MailNotificationChannel = require('./notification-channels/mail')
+const PasswordResetsService = require('./services/password.resets.service')
 const DatabaseNotificationChannel = require('./notification-channels/database')
+const PasswordResetsController = require('./controllers/password.resets.controller')
 
 class Kopter {
     constructor(config = {}) {
@@ -48,7 +54,9 @@ class Kopter {
             cors: {},
             UserSchema,
             UserService,
+            PasswordResetsSchema,
             MailService,
+            PasswordResetsService,
             NotificationSchema,
             notificationChannels: [
                 MailNotificationChannel,
@@ -66,13 +74,27 @@ class Kopter {
                 viewEngine: 'handlebars'
             },
             disableRegistrationEventListeners: false,
+            disablePasswordResetsEventListeners: false,
             queue: {
                 workers: [
                     {
                         name: 'mails.queue',
                         options: {},
+                        handler({ job, done, Container: Con }) {
+                            console.log(
+                                '############# sending emails here',
+                                job.data,
+                                Con.globalInstance
+                            )
+                        }
+                    },
+                    {
+                        name: 'delete-users.queue',
+                        options: {},
                         handler() {
-                            console.log('############# MAGIC HAPPENING HERE')
+                            console.log(
+                                '############# DELETING USERS HERE HERE'
+                            )
                         }
                     }
                 ]
@@ -83,14 +105,16 @@ class Kopter {
             'UserSchema',
             'UserService',
             'MailService',
-            'NotificationSchema'
+            'NotificationSchema',
+            'PasswordResetsSchema'
         ])
 
         const plainDefaultConfig = Omit(this.config, [
             'NotificationSchema',
             'UserSchema',
             'UserService',
-            'MailService'
+            'MailService',
+            'PasswordResetsSchema'
         ])
 
         /**
@@ -100,6 +124,11 @@ class Kopter {
             UserSchema: config.UserSchema || this.config.UserSchema,
             UserService: config.UserService || this.config.UserService,
             MailService: config.MailService || this.config.MailService,
+            PasswordResetsSchema:
+                config.PasswordResetsSchema || this.config.PasswordResetsSchema,
+            PasswordResetsService:
+                config.PasswordResetsService ||
+                this.config.PasswordResetsService,
             NotificationSchema:
                 config.NotificationSchema || this.config.NotificationSchema,
             ...DeepMerge(plainDefaultConfig, plainConfig)
@@ -164,6 +193,11 @@ class Kopter {
             NOTIFICATION_MODEL,
             Mongoose.model('Notification', this.config.NotificationSchema)
         )
+
+        Container.set(
+            PASSWORD_RESETS_MODEL,
+            Mongoose.model('ResetPassword', this.config.PasswordResetsSchema)
+        )
     }
 
     registerNotificationChannels() {
@@ -185,26 +219,41 @@ class Kopter {
     }
 
     registerServices() {
-        Container.set(
-            USER_SERVICE,
-            new this.config.UserService(Container.get(USER_MODEL))
-        )
+        Container.set(USER_SERVICE, new this.config.UserService())
 
         Container.set(
             MAIL_SERVICE,
             new this.config.MailService(this.config.mail)
         )
+
+        Container.set(
+            PASSWORD_RESETS_SERVICE,
+            new this.config.PasswordResetsService()
+        )
     }
 
     registerRegistrationEventListeners() {
         if (this.config.disableRegistrationEventListeners) return
+        this.registerEventEmitters(
+            'confirm-email',
+            USER_REGISTERED,
+            'Welcome to Kopter !!!'
+        )
+    }
 
+    registerPasswordResetEventListener() {
+        if (this.config.disablePasswordResetsEventListeners) return
+        this.registerEventEmitters(
+            'password-reset',
+            PASSWORD_RESET,
+            'Reset Password !!!'
+        )
+    }
+
+    registerEventEmitters(mailName, event, subject) {
         const config = this.config.mail
 
-        Container.get(EVENT_DISPATCHER).on(USER_REGISTERED, async user => {
-            const mailName = 'confirm-email'
-            // check if the user has created a confirm-email mail in their
-            // configured views folder
+        Container.get(EVENT_DISPATCHER).on(event, async user => {
             const mailFolder = process.cwd() + config.views
 
             const customMailConfig = {}
@@ -215,13 +264,11 @@ class Kopter {
                 customMailConfig.views = Path.resolve(__dirname, 'mails')
             }
 
-            // if they have, then use that
-            // if not, then use the default in the mails folder
             Container.get('mails.queue').add({
                 data: user,
                 mailName,
                 customMailConfig,
-                subject: 'Welcome to Kopter !!!',
+                subject,
                 recipients: user.email
             })
         })
@@ -278,6 +325,16 @@ class Kopter {
         router.post(
             '/login',
             asyncRequest(Container.get(LoginController).login)
+        )
+
+        router.post(
+            '/forgot-password',
+            asyncRequest(Container.get(PasswordResetsController).forgotPassword)
+        )
+
+        router.put(
+            '/reset-password/:token',
+            asyncRequest(Container.get(PasswordResetsController).resetPassword)
         )
     }
 
@@ -341,6 +398,8 @@ class Kopter {
                     this.registerNotificationChannels()
 
                     this.registerRegistrationEventListeners()
+
+                    this.registerPasswordResetEventListener()
 
                     this.extendIndicative()
 

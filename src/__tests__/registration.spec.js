@@ -21,6 +21,7 @@ const defaultKopterConfig = {
 }
 
 afterAll(async () => {
+    await Container.get(USER_MODEL).deleteMany({})
     await Mongoose.connection.close()
 })
 
@@ -30,7 +31,7 @@ const generateFakeUser = () => ({
     emailConfirmCode: Faker.random.word()
 })
 
-test.only('/auth/register can register a new user to the database', async () => {
+test('/auth/register can register a new user to the database', async () => {
     const app = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
