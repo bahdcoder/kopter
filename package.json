@@ -41,7 +41,7 @@
     },
     "scripts": {
         "watch": "nodemon src/",
-        "test": "jest --verbose --coverage",
+        "test": "jest --verbose --coverage --forceExit",
         "coverage": "yarn test && cat ./coverage/lcov.info | codacy-coverage",
         "prettier": "prettier --write './**/*.{js,ts,json}'"
     },
