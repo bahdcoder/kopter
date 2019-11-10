@@ -298,7 +298,11 @@ class Kopter {
     }
 
     registerBillingProvider() {
-        if (!this.config.billing || !this.config.billing.provider) return
+        if (!this.config.billing || !this.config.billing.provider) {
+            Container.set(BILLING_PROVIDER, {})
+
+            return
+        }
 
         switch (this.config.billing.provider) {
             case 'stripe':
@@ -307,6 +311,7 @@ class Kopter {
                     new this.config.StripeBillingProvider()
                 )
             default:
+                Container.set(BILLING_PROVIDER, {})
                 break
         }
     }

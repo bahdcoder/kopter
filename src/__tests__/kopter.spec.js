@@ -21,7 +21,7 @@ test('It returns the app when init function is called', async () => {
     expect(await kopter.init()).toBe(kopter.app)
 })
 
-test('It registers body parser if body parser is not set to false', async () => {
+test.only('It registers body parser if body parser is not set to false', async () => {
     const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'registerBodyParser')
@@ -31,7 +31,7 @@ test('It registers body parser if body parser is not set to false', async () => 
     expect(kopter.registerBodyParser).toHaveBeenCalled()
 })
 
-test('It does not register body parser if body parser is set to false', async () => {
+test.only('It does not register body parser if body parser is set to false', async () => {
     const kopter = new Kopter({
         ...defaultKopterConfig,
         bodyParser: false
