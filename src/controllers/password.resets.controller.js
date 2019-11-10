@@ -2,20 +2,18 @@ const Bcrypt = require('bcryptjs')
 const { Container } = require('typedi')
 const { validateAll } = require('indicative/validator')
 const RandomString = require('randomstring')
-const addMinutes = require('date-fns/addMinutes')
 const {
     PASSWORD_RESETS_SERVICE,
     PASSWORD_RESET,
     EVENT_DISPATCHER
 } = require('../utils/constants')
 
-class PasswordResetsService {
+class PasswordResetsController {
     constructor() {
         this.EventEmitter = Container.get(EVENT_DISPATCHER)
         this.PasswordResetsService = Container.get(PASSWORD_RESETS_SERVICE)
 
-        this.setNewPassword = this.setNewPassword.bind(this)
-        this.hashPassword = this.hashPassword.bind(this)
+        this.resetPassword = this.resetPassword.bind(this)
         this.successResponse = this.successResponse.bind(this)
         this.forgotPassword = this.forgotPassword.bind(this)
         this.validate = this.validate.bind(this)
@@ -24,19 +22,14 @@ class PasswordResetsService {
         this.successResponse = this.successResponse.bind(this)
     }
 
-    async setNewPassword(request, response) {
+    async resetPassword(request, response) {
         const resetToken = await this.PasswordResetsService.findToken(
             request.params.token
         )
 
-        if (this.PasswordResetsService.expired(resetToken.expiresAt))
-            throw new Error('Token Expired')
-
-        const hashedPassword = this.hashPassword(request.body.password)
-
         await this.PasswordResetsService.setNewPassword(
             resetToken.user,
-            hashedPassword
+            Bcrypt.hashSync(request.body.password)
         )
 
         this.PasswordResetsService.deleteToken(request.params.token)
@@ -51,15 +44,14 @@ class PasswordResetsService {
             request.body.email
         )
 
-        const forgotPasswordToken = RandomString.generate(72)
         const tokenData = {
-            token: forgotPasswordToken,
+            token: RandomString.generate(72),
             user: user._id,
-            expiresAt: addMinutes(new Date(), 10)
+            expiresAt: this.PasswordResetsService.getTokenExpiryDate()
         }
 
         const resetToken = await this.PasswordResetsService.saveToken(tokenData)
-        // send email notification to user
+
         this.EventEmitter.emit(PASSWORD_RESET, {
             token: tokenData.token,
             ...user
@@ -72,10 +64,6 @@ class PasswordResetsService {
         await validateAll(data, this.validationRules(), this.customMessages())
     }
 
-    hashPassword(password) {
-        return Bcrypt.hashSync(password)
-    }
-
     validationRules() {
         return {
             email: 'required|string|email'
@@ -86,9 +74,9 @@ class PasswordResetsService {
         return {}
     }
 
-    successResponse(response, msg) {
-        return response.ok(msg)
+    successResponse(response, responseData) {
+        return response.ok(responseData)
     }
 }
 
-module.exports = PasswordResetsService
+module.exports = PasswordResetsController

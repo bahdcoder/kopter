@@ -1,5 +1,6 @@
 const Omit = require('object.omit')
 const { Container } = require('typedi')
+const addMinutes = require('date-fns/addMinutes')
 const { USER_MODEL, PASSWORD_RESETS_MODEL } = require('../utils/constants')
 
 class PasswordResetsService {
@@ -9,12 +10,18 @@ class PasswordResetsService {
 
         this.findToken = this.findToken.bind(this)
         this.setNewPassword = this.setNewPassword.bind(this)
+        this.expired = this.expired.bind(this)
     }
 
     async findToken(token) {
         const resetToken = await this.PasswordResetsModel.findOne({ token })
 
         if (!resetToken) throw new Error('Invalid Token')
+
+        if (this.expired(resetToken.expiresAt)) {
+            this.deleteToken(resetToken.token)
+            throw new Error('Invalid Token')
+        }
 
         return resetToken
     }
@@ -41,6 +48,10 @@ class PasswordResetsService {
         if (!user) throw new Error(`Could not find user with email : ${email}`)
 
         return user
+    }
+
+    getTokenExpiryDate(expiryDate) {
+        return addMinutes(new Date(), expiryDate || 10)
     }
 
     async saveToken(data) {

@@ -80,8 +80,21 @@ class Kopter {
                     {
                         name: 'mails.queue',
                         options: {},
+                        handler({ job, done, Container: Con }) {
+                            console.log(
+                                '############# sending emails here',
+                                job.data,
+                                Con.globalInstance
+                            )
+                        }
+                    },
+                    {
+                        name: 'delete-users.queue',
+                        options: {},
                         handler() {
-                            console.log('############# MAGIC HAPPENING HERE')
+                            console.log(
+                                '############# DELETING USERS HERE HERE'
+                            )
                         }
                     }
                 ]
@@ -233,7 +246,7 @@ class Kopter {
         this.registerEventEmitters(
             'password-reset',
             PASSWORD_RESET,
-            'Reset Password !'
+            'Reset Password !!!'
         )
     }
 
@@ -321,7 +334,7 @@ class Kopter {
 
         router.put(
             '/reset-password/:token',
-            asyncRequest(Container.get(PasswordResetsController).setNewPassword)
+            asyncRequest(Container.get(PasswordResetsController).resetPassword)
         )
     }
 

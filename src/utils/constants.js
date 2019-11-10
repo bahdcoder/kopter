@@ -1,6 +1,5 @@
 module.exports = {
     USER_MODEL: 'user.model',
-    NOTIFICATION_MODEL: 'notification.model',
 
     X_POWERED_BY: 'x-powered-by',
 
@@ -11,9 +10,11 @@ module.exports = {
     PASSWORD_RESET: 'password.reset',
 
     USER_REGISTERED: 'user.registered',
-    EVENT_DISPATCHER: 'event.dispatcher',
 
+    EVENT_DISPATCHER: 'event.dispatcher',
     LOGIN_CONTROLLER: 'login.controller',
+
+    NOTIFICATION_MODEL: 'notification.model',
     REGISTER_CONTROLLER: 'register.controller',
 
     NOTIFICATION_SERVICE: 'notification.service',
