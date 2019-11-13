@@ -4,6 +4,7 @@ const Kopter = require('../Kopter')
 const Request = require('supertest')
 const Mongoose = require('mongoose')
 const { Container } = require('typedi')
+const clearRegisteredModels = require('./test-utils/clear-registered-models')
 const { USER_MODEL, PASSWORD_RESETS_MODEL } = require('../utils/constants')
 const { PASSWORD_RESETS_SERVICE } = require('../utils/constants')
 
@@ -21,6 +22,8 @@ const defaultKopterConfig = {
         }
     }
 }
+
+beforeEach(clearRegisteredModels)
 
 afterAll(async () => {
     await Container.get(USER_MODEL).deleteMany({})

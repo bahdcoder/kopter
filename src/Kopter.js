@@ -123,7 +123,7 @@ class Kopter {
             'NotificationSchema',
             'SubscriptionSchema',
             'PasswordResetsSchema',
-            'StripeBillingProvider',
+            'StripeBillingProvider'
         ])
 
         const plainDefaultConfig = Omit(this.config, [
@@ -134,7 +134,7 @@ class Kopter {
             'NotificationSchema',
             'SubscriptionSchema',
             'PasswordResetsSchema',
-            'StripeBillingProvider',
+            'StripeBillingProvider'
         ])
 
         /**
@@ -354,7 +354,7 @@ class Kopter {
             PASSWORD_RESETS_MODEL,
             Mongoose.model('ResetPassword', this.config.PasswordResetsSchema)
         )
-        
+
         Container.set(
             SUBSCRIPTION_MODEL,
             Mongoose.model('Subscription', this.config.SubscriptionSchema)
@@ -391,7 +391,7 @@ class Kopter {
             PASSWORD_RESETS_SERVICE,
             new this.config.PasswordResetsService()
         )
-        
+
         Container.set(BILLING_SERVICE, new this.config.BillingService())
     }
 
