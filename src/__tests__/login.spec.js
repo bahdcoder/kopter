@@ -5,6 +5,7 @@ const Request = require('supertest')
 const Mongoose = require('mongoose')
 const { Container } = require('typedi')
 const { USER_MODEL } = require('../utils/constants')
+const clearRegisteredModels = require('./test-utils/clear-registered-models')
 
 process.env.JWT_SECRET = 'shhh'
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
@@ -17,6 +18,8 @@ afterAll(async () => {
     await Container.get(USER_MODEL).deleteMany({})
     await Mongoose.connection.close()
 })
+
+beforeEach(clearRegisteredModels)
 
 const generateFakeUser = () => ({
     email: Faker.internet.email(),

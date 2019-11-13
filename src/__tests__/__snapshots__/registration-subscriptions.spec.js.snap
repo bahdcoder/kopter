@@ -20,18 +20,44 @@ Object {
 }
 `;
 
+exports[`/auth/register registers user correctly and subscribes her when paymentMethod and plan are provided 1`] = `
+Array [
+  "user",
+  "token",
+  "subscription",
+]
+`;
+
 exports[`/auth/register validates email and password correctly 1`] = `
 Object {
   "code": "badRequest",
   "data": Array [
     Object {
+      "field": "password",
+      "message": "required validation failed on password",
+      "validation": "required",
+    },
+    Object {
       "field": "email",
       "message": "required validation failed on email",
       "validation": "required",
     },
+  ],
+}
+`;
+
+exports[`/auth/register with billing enabled returns correct validation errors 1`] = `
+Object {
+  "code": "badRequest",
+  "data": Array [
     Object {
-      "field": "password",
-      "message": "required validation failed on password",
+      "field": "plan",
+      "message": "required validation failed on plan",
+      "validation": "required",
+    },
+    Object {
+      "field": "paymentMethod",
+      "message": "required validation failed on paymentMethod",
       "validation": "required",
     },
   ],

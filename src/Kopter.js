@@ -86,13 +86,6 @@ class Kopter {
                 connection: 'ethereal',
                 viewEngine: 'handlebars'
             },
-            // billing: {
-            //     currency: 'USD',
-
-            //     provider: 'stripe',
-
-            //     cardUpFront: false,
-            // },
             disableRegistrationEventListeners: false,
             disablePasswordResetsEventListeners: false,
             queue: {
@@ -310,6 +303,8 @@ class Kopter {
                     BILLING_PROVIDER,
                     new this.config.StripeBillingProvider()
                 )
+
+                break
             default:
                 Container.set(BILLING_PROVIDER, {})
                 break

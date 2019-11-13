@@ -50,7 +50,14 @@ class UserService {
     }
 
     serializeUser(user) {
-        return Omit(user.toObject(), ['emailConfirmCode', 'password', '__v'])
+        return Omit(user.toObject(), [
+            'emailConfirmCode',
+            'password',
+            '__v',
+            'stripeId',
+            'cardBrand',
+            'cardLastFour'
+        ])
     }
 
     getJWTSecret() {

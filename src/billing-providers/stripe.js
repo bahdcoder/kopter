@@ -23,21 +23,21 @@ class StripeBillingProvider {
 
         let stripePaymentMethod = null
 
-        if (paymentMethod) {
-            customerOptions = {
-                ...customerOptions,
-                payment_method: paymentMethod,
-                invoice_settings: {
-                    default_payment_method: paymentMethod
+        try {
+            if (paymentMethod) {
+                customerOptions = {
+                    ...customerOptions,
+                    payment_method: paymentMethod,
+                    invoice_settings: {
+                        default_payment_method: paymentMethod
+                    }
                 }
+
+                stripePaymentMethod = await this.stripe.paymentMethods.retrieve(
+                    paymentMethod
+                )
             }
 
-            stripePaymentMethod = await this.stripe.paymentMethods.retrieve(
-                paymentMethod
-            )
-        }
-
-        try {
             const stripeCustomer = await this.stripe.customers.create({
                 email: userInstance.email,
                 name: userInstance.name || undefined,
@@ -199,64 +199,6 @@ class StripeBillingProvider {
         })
 
         return this.prepareSubscriptionResponse(subscription)
-    }
-
-    async getCustomer() {}
-
-    async updateCustomer(userInstance, options = {}) {
-        return await this.stripe.customers.update({
-            id: userInstance.stripeId,
-            ...options
-        })
-    }
-
-    async createSetupIntent() {}
-
-    async resolveStripePaymentMethod(paymentMethod) {
-        return await this.stripe.paymentMethods.retrieve(paymentMethod)
-    }
-
-    async getPaymentMethods(userInstance) {
-        return await this.stripe.paymentMethods.list({
-            customer: userInstance.stripeId
-        })
-    }
-
-    async defaultPaymentMethod(userInstance) {
-        if (!userInstance.stripeId) return null
-
-        const customer = await this.stripe.customers.retrieve(
-            userInstance.stripeId,
-            {
-                expand: [
-                    'invoice_settings.default_payment_method',
-                    'default_source'
-                ]
-            }
-        )
-
-        if (customer.invoice_settings.default_payment_method) {
-            return customer.invoice_settings.default_payment_method
-        }
-
-        return customer.default_source
-    }
-
-    async addPaymentMethod(userInstance, paymentMethod) {
-        let stripePaymentMethod = await this.resolveStripePaymentMethod(
-            paymentMethod
-        )
-
-        if (userInstance.stripeId !== stripePaymentMethod.customer) {
-            stripePaymentMethod = await stripePaymentMethod.attach(
-                paymentMethod,
-                {
-                    customer: userInstance.stripeId
-                }
-            )
-        }
-
-        return stripePaymentMethod
     }
 }
 

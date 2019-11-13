@@ -1,5 +1,6 @@
 const Kopter = require('../Kopter')
 const Mongoose = require('mongoose')
+const clearRegisteredModels = require('./test-utils/clear-registered-models')
 
 const defaultKopterConfig = {}
 
@@ -8,6 +9,8 @@ process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 afterAll(async () => {
     await Mongoose.connection.close()
 })
+
+beforeEach(clearRegisteredModels)
 
 test('It initialises a new instance correctly', () => {
     const kopter = new Kopter(defaultKopterConfig)
@@ -21,7 +24,7 @@ test('It returns the app when init function is called', async () => {
     expect(await kopter.init()).toBe(kopter.app)
 })
 
-test.only('It registers body parser if body parser is not set to false', async () => {
+test('It registers body parser if body parser is not set to false', async () => {
     const kopter = new Kopter(defaultKopterConfig)
 
     jest.spyOn(kopter, 'registerBodyParser')
@@ -31,7 +34,7 @@ test.only('It registers body parser if body parser is not set to false', async (
     expect(kopter.registerBodyParser).toHaveBeenCalled()
 })
 
-test.only('It does not register body parser if body parser is set to false', async () => {
+test('It does not register body parser if body parser is set to false', async () => {
     const kopter = new Kopter({
         ...defaultKopterConfig,
         bodyParser: false
