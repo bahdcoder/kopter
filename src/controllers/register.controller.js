@@ -130,14 +130,6 @@ class RegisterController {
         }
     }
 
-    hasPaidPlan(request) {
-        if (!request.body.plan) return false
-
-        const plan = this.BillingService.getPlan(request.body.plan)
-
-        return plan && plan.price > 0
-    }
-
     /**
      * Get the validation rules for the
      * user registration
