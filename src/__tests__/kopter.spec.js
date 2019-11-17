@@ -20,7 +20,7 @@ test('It initialises a new instance correctly', () => {
 test('It returns the app when init function is called', async () => {
     const kopter = new Kopter(defaultKopterConfig)
 
-    expect(await kopter.init()).toBe(kopter.app)
+    expect((await kopter.init()).app).toBe(kopter.app)
 })
 
 test('It registers body parser if body parser is not set to false', async () => {

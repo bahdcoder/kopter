@@ -26,7 +26,7 @@ const generateFakeUser = () => ({
 })
 
 test('/auth/login can login a user with the right credentials', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
 
@@ -44,7 +44,7 @@ test('/auth/login can login a user with the right credentials', async () => {
 })
 
 test('/auth/login does not allow user login with wrong password', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
 
@@ -61,7 +61,7 @@ test('/auth/login does not allow user login with wrong password', async () => {
 })
 
 test('/auth/login does not allow login with wrong email', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
 

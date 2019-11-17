@@ -166,7 +166,7 @@ const generateFakeUser = () => ({
 })
 
 test('/auth/register can register a new user to the database', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
     const response = await Request(app)
@@ -181,7 +181,7 @@ test('/auth/register can register a new user to the database', async () => {
 })
 
 test('/auth/register does not allow duplicate emails', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
     await Container.get(USER_MODEL).create(user)
@@ -197,7 +197,7 @@ test('/auth/register does not allow duplicate emails', async () => {
 })
 
 test('/auth/register validates email and password correctly', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const response = await Request(app)
         .post('/auth/register')
@@ -207,7 +207,7 @@ test('/auth/register validates email and password correctly', async () => {
 })
 
 test('/auth/register with billing enabled returns correct validation errors', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     const user = generateFakeUser()
 
@@ -222,7 +222,7 @@ test('/auth/register with billing enabled returns correct validation errors', as
 })
 
 test('/auth/register registers user correctly and subscribes her when paymentMethod and plan are provided', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     await Container.get(SUBSCRIPTION_MODEL).deleteMany({})
 
@@ -254,7 +254,7 @@ test('/auth/register registers user correctly and subscribes her when paymentMet
 })
 
 test('/auth/register gracefully handles a failed payment method and deletes the newly created user', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     const user = generateFakeUser()
 
@@ -277,7 +277,7 @@ test('/auth/register gracefully handles a failed payment method and deletes the 
 })
 
 test('/auth/register can register a user without starting a subscription for the user', async () => {
-    const app = await new Kopter({
+    const { app } = await new Kopter({
         ...defaultBillingConfig,
         billing: {
             ...defaultBillingConfig.billing,
@@ -306,7 +306,7 @@ test('/auth/register can register a user without starting a subscription for the
 })
 
 test('/auth/register can register a user with a payment intent that requires additional action', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     const user = generateFakeUser()
 
@@ -331,7 +331,7 @@ test('/auth/register can register a user with a payment intent that requires add
 })
 
 test('/subscriptions/cancel can cancel a subscription for a user and set them on grace period', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     await Container.get(SUBSCRIPTION_MODEL).deleteMany({})
     const user = generateFakeUser()
@@ -365,7 +365,7 @@ test('/subscriptions/cancel can cancel a subscription for a user and set them on
 })
 
 test('/subscriptions/resume can resume a canceled subscription for a user and set them back on active', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     await Container.get(SUBSCRIPTION_MODEL).deleteMany({})
     const user = generateFakeUser()
@@ -395,7 +395,7 @@ test('/subscriptions/resume can resume a canceled subscription for a user and se
 })
 
 test('/subscriptions/resume cannot resume a canceled subscription if one does not exist', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     await Container.get(SUBSCRIPTION_MODEL).deleteMany({})
     const user = generateFakeUser()
@@ -420,7 +420,7 @@ test('/subscriptions/resume cannot resume a canceled subscription if one does no
 })
 
 test('/subscriptions/switch can change a user subscription plan', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     await Container.get(SUBSCRIPTION_MODEL).deleteMany({})
     const user = generateFakeUser()
@@ -446,7 +446,7 @@ test('/subscriptions/switch can change a user subscription plan', async () => {
 })
 
 test('/subscriptions/switch returns an error if user is trying to switch to a plan she is already subscribed to', async () => {
-    const app = await new Kopter(defaultBillingConfig).init()
+    const { app } = await new Kopter(defaultBillingConfig).init()
 
     await Container.get(SUBSCRIPTION_MODEL).deleteMany({})
     const user = generateFakeUser()

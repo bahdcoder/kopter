@@ -34,7 +34,7 @@ const generateFakeUser = () => ({
 })
 
 test('/auth/forgot-password can send forget password email', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
     await Container.get(USER_MODEL).create(user)
@@ -50,7 +50,7 @@ test('/auth/forgot-password can send forget password email', async () => {
 })
 
 test('/auth/forgot-password does not send forget password email', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const response = await Request(app)
         .post('/auth/forgot-password')
@@ -63,7 +63,7 @@ test('/auth/forgot-password does not send forget password email', async () => {
 })
 
 test('/auth/reset-password can reset password', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
     const newUser = await Container.get(USER_MODEL).create(user)
@@ -89,7 +89,7 @@ test('/auth/reset-password can reset password', async () => {
 })
 
 test('/auth/reset-password does not reset password for wrong token', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const user = generateFakeUser()
     const newUser = await Container.get(USER_MODEL).create(user)
@@ -111,7 +111,7 @@ test('/auth/reset-password does not reset password for wrong token', async () =>
 })
 
 test('/auth/register validates email', async () => {
-    const app = await new Kopter(defaultKopterConfig).init()
+    const { app } = await new Kopter(defaultKopterConfig).init()
 
     const response = await Request(app)
         .post('/auth/forgot-password')

@@ -1,6 +1,6 @@
 import { Kopter } from 'kopter'
 
-new Kopter().init().then(app => {
+new Kopter().init().then(({ app }) => {
     const PORT = 5000
 
     app.listen(PORT, () => {
