@@ -74,7 +74,7 @@ class StripeBillingProvider {
             }
         )
 
-        subscription.endsAt = fromUnixTime(
+        subscription.currentPeriodEnd = fromUnixTime(
             stripeSubscription.current_period_end
         )
 
@@ -99,13 +99,24 @@ class StripeBillingProvider {
             }
         )
 
-        currentSubscription.endsAt = null
         currentSubscription.stripePlan = plan.id
-        currentSubscription.stripeStatus = updatedSubscription.status
 
-        await currentSubscription.save()
+        await this.syncSubscriptions(updatedSubscription, currentSubscription)
 
         await this.generateCustomerInvoice(user)
+    }
+
+    async syncSubscriptions(stripeSubscription, subscription) {
+        subscription.currentPeriodEnd = fromUnixTime(
+            stripeSubscription.current_period_end
+        )
+        subscription.currentPeriodStart = fromUnixTime(
+            stripeSubscription.current_period_start
+        )
+        subscription.cancelAtPeriodEnd = stripeSubscription.cancel_at_period_end
+        subscription.stripeStatus = stripeSubscription.status
+
+        await subscription.save()
     }
 
     async generateCustomerInvoice(user) {
@@ -118,14 +129,25 @@ class StripeBillingProvider {
         return true
     }
 
-    async resumeSubscription({ user, subscription }) {
-        await this.stripe.subscriptions.update(subscription.stripeId, {
-            cancel_at_period_end: false
+    async resumeSubscription({ user }) {
+        const subscription = await this.SubscriptionModel.findOne({
+            user: user._id,
+            currentPeriodEnd: {
+                $gt: new Date()
+            }
         })
 
-        subscription.endsAt = null
+        if (!subscription)
+            throw new Error('User has no subscriptions that can be resumed.')
 
-        await subscription.save()
+        const stripeSubscription = await this.stripe.subscriptions.update(
+            subscription.stripeId,
+            {
+                cancel_at_period_end: false
+            }
+        )
+
+        await this.syncSubscriptions(stripeSubscription, subscription)
     }
 
     prepareSubscriptionResponse(subscription) {
@@ -185,17 +207,16 @@ class StripeBillingProvider {
         })
 
         await this.SubscriptionModel.create({
-            paymentIntentStatus: (
-                subscription.latest_invoice.payment_intent || {}
-            ).status,
             stripeStatus: subscription.status,
             stripeId: subscription.id,
             stripePlan: plan.id,
-            trialEndsAt: plan.trialDays
+            trialEnd: plan.trialDays
                 ? fromUnixTime(subscription.trial_end)
                 : null,
-            endsAt: null,
-            user: user._id
+            user: user._id,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            currentPeriodStart: subscription.current_period_start,
+            currentPeriodEnd: subscription.current_period_end
         })
 
         return this.prepareSubscriptionResponse(subscription)

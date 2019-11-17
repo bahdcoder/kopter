@@ -40,22 +40,9 @@ class SubscriptionController {
 
     async resume(request, response) {
         const { user } = request
-        // we'll find a subcription for this user that has been cancelled and the endsAt date is greater than now
-        // we'll resume the sub by calling the billing provider
-        // then we'll set endsAt to null
-        const subscription = await this.SubscriptionModel.findOne({
-            user: user._id,
-            endsAt: {
-                $gt: new Date()
-            }
-        })
-
-        if (!subscription)
-            throw new Error('User has no subscriptions that can be resumed.')
 
         await this.BillingService.resumeSubscription({
-            user,
-            subscription
+            user
         })
 
         return response.ok('Subscription resumed.')

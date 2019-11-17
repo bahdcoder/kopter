@@ -9,6 +9,7 @@ const clearRegisteredModels = require('./test-utils/clear-registered-models')
 process.env.JWT_SECRET = 'shhh'
 process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 process.env.STRIPE_API_KEY = 'sk_test_BbvXhW3mzZBf52YzR1ihwlqU'
+process.env.STRIPE_WEBHOOK_SECRET = 'whsec_RMA5R0RsvmJfSRQjbsv0rwiRJKhXJ7Ne'
 
 jest.mock('stripe', () => stripeKey => ({
     subscriptions: {
@@ -39,6 +40,7 @@ jest.mock('stripe', () => stripeKey => ({
                 id: stripeSubscriptionId,
                 ...options,
                 status: 'active',
+                current_period_start: new Date('2020.09.10').getTime() / 1000,
                 current_period_end: new Date('2020.10.10').getTime() / 1000
             }
         },
@@ -356,7 +358,7 @@ test('/subscriptions/cancel can cancel a subscription for a user and set them on
     const subscription = await Container.get(SUBSCRIPTION_MODEL).find({})
 
     expect(response.body.code).toBe('ok')
-    expect(subscription[0].endsAt).not.toBeNull()
+    expect(subscription[0].currentPeriodEnd).not.toBeNull()
     expect(response.body.data).toBe('Subscription cancelled.')
 })
 
@@ -386,7 +388,7 @@ test('/subscriptions/resume can resume a canceled subscription for a user and se
     const subscription = await Container.get(SUBSCRIPTION_MODEL).find({})
 
     expect(response.body.code).toBe('ok')
-    expect(subscription[0].endsAt).toBeNull()
+    expect(subscription[0].cancelAtPeriodEnd).toBe(false)
     expect(response.body.data).toBe('Subscription resumed.')
 })
 

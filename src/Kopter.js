@@ -52,6 +52,7 @@ const PasswordResetsService = require('./services/password.resets.service')
 const SubscriptionController = require('./controllers/subscription.controller')
 const DatabaseNotificationChannel = require('./notification-channels/database')
 const PasswordResetsController = require('./controllers/password.resets.controller')
+const StripeWebhooksController = require('./controllers/stripe-webhooks.controller')
 
 class Kopter {
     constructor(config = {}) {
@@ -161,10 +162,6 @@ class Kopter {
                     type: Mongoose.Schema.Types.String,
                     required: true
                 },
-                paymentIntentStatus: {
-                    type: Mongoose.Schema.Types.String,
-                    required: false
-                },
                 stripePlan: {
                     type: Mongoose.Schema.Types.String,
                     required: true
@@ -174,12 +171,20 @@ class Kopter {
                     required: false,
                     default: 1
                 },
-                trialEndsAt: {
+                trialEnd: {
                     type: Mongoose.Schema.Types.Date,
                     required: false
                 },
-                endsAt: {
+                currentPeriodStart: {
                     type: Mongoose.Schema.Types.Date,
+                    required: false
+                },
+                currentPeriodEnd: {
+                    type: Mongoose.Schema.Types.Date,
+                    required: false
+                },
+                cancelAtPeriodEnd: {
+                    type: Mongoose.Schema.Types.Boolean,
                     required: false
                 }
             }
@@ -198,7 +203,7 @@ class Kopter {
                     type: String,
                     required: false
                 },
-                trialEndsAt: {
+                trialEnd: {
                     type: Date,
                     required: false
                 },
@@ -507,6 +512,18 @@ class Kopter {
         )
     }
 
+    registerWebhooks() {
+        const router = Express.Router()
+
+        this.app.use('/webhooks', router)
+
+        router.post(
+            '/stripe',
+            BodyParser.raw({ type: 'application/json' }),
+            asyncRequest(Container.get(StripeWebhooksController).handle)
+        )
+    }
+
     registerAuthRoutes() {
         const router = this.getAuthRouter()
 
@@ -602,6 +619,7 @@ class Kopter {
 
                     this.registerResponseHelpers()
 
+                    this.registerWebhooks()
                     /**
                      * Configure body parser
                      */

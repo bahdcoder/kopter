@@ -49,7 +49,7 @@ class BillingService {
     }
 
     onTrial(subscription) {
-        return subscription.trialEndsAt && isFuture(subscription.trialEndsAt)
+        return subscription.trialEnd && isFuture(subscription.trialEnd)
     }
 
     async switchSubscriptionPlan({ user, plan, currentSubscription }) {
