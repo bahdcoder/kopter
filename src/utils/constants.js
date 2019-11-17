@@ -29,5 +29,7 @@ module.exports = {
     NOTIFICATION_CHANNELS: 'notification.channels',
 
     PASSWORD_RESETS_MODEL: 'password.resets.model',
-    PASSWORD_RESETS_SERVICE: 'password.resets.service'
+    PASSWORD_RESETS_SERVICE: 'password.resets.service',
+
+    MAILS_QUEUE: 'mails.queue'
 }

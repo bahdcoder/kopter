@@ -36,9 +36,13 @@ class PasswordResetsService {
 
     async setNewPassword(userId, password) {
         const user = await this.UserModel.findById(userId)
+
+        if (!user) throw new Error('User does not exist.')
+
         user.password = password
 
         await user.save()
+
         return user
     }
 

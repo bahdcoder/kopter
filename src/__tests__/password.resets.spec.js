@@ -35,6 +35,7 @@ const generateFakeUser = () => ({
 
 test('/auth/forgot-password can send forget password email', async () => {
     const { app } = await new Kopter(defaultKopterConfig).init()
+    await Container.get(USER_MODEL).deleteMany({})
 
     const user = generateFakeUser()
     await Container.get(USER_MODEL).create(user)
@@ -64,6 +65,8 @@ test('/auth/forgot-password does not send forget password email', async () => {
 
 test('/auth/reset-password can reset password', async () => {
     const { app } = await new Kopter(defaultKopterConfig).init()
+
+    await Container.get(USER_MODEL).deleteMany({})
 
     const user = generateFakeUser()
     const newUser = await Container.get(USER_MODEL).create(user)
