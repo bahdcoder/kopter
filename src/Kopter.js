@@ -55,7 +55,9 @@ const PasswordResetsController = require('./controllers/password.resets.controll
 const StripeWebhooksController = require('./controllers/stripe-webhooks.controller')
 
 class Kopter {
-    constructor(config = {}) {
+    constructor(
+        config = require(Path.resolve(process.cwd(), 'kopter.config.js'))
+    ) {
         this.app = Express()
 
         this.config = {
