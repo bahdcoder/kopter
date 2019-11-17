@@ -55,7 +55,18 @@ const PasswordResetsController = require('./controllers/password.resets.controll
 const StripeWebhooksController = require('./controllers/stripe-webhooks.controller')
 
 class Kopter {
-    constructor(config = {}) {
+    constructor(config) {
+        if (!config) {
+            try {
+                config = require(Path.resolve(
+                    process.cwd(),
+                    'kopter.config.js'
+                ))
+            } catch (e) {
+                config = {}
+            }
+        }
+
         this.app = Express()
 
         this.config = {
@@ -95,11 +106,7 @@ class Kopter {
                         name: 'mails.queue',
                         options: {},
                         handler({ job, done, Container: Con }) {
-                            console.log(
-                                '############# sending emails here',
-                                job.data,
-                                Con.globalInstance
-                            )
+                            done()
                         }
                     },
                     {
@@ -640,7 +647,7 @@ class Kopter {
 
                     this.registerSubscriptionRoutes()
 
-                    return this.app
+                    return this
                 })
 
                 .catch(e => {
