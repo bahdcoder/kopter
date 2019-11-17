@@ -1,13 +1,9 @@
 const Kopter = require('../Kopter')
+require('./test-utils/setup-env')()
 const Mongoose = require('mongoose')
 const clearRegisteredModels = require('./test-utils/clear-registered-models')
 
 const defaultKopterConfig = {}
-
-process.env.JWT_SECRET = 'shhh'
-process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
-process.env.STRIPE_API_KEY = 'sk_test_BbvXhW3mzZBf52YzR1ihwlqU'
-process.env.STRIPE_WEBHOOK_SECRET = 'whsec_RMA5R0RsvmJfSRQjbsv0rwiRJKhXJ7Ne'
 
 afterAll(async () => {
     await Mongoose.connection.close()

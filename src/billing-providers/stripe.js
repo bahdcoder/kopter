@@ -77,6 +77,7 @@ class StripeBillingProvider {
         subscription.currentPeriodEnd = fromUnixTime(
             stripeSubscription.current_period_end
         )
+        subscription.cancelAtPeriodEnd = true
 
         await subscription.save()
     }
@@ -132,9 +133,7 @@ class StripeBillingProvider {
     async resumeSubscription({ user }) {
         const subscription = await this.SubscriptionModel.findOne({
             user: user._id,
-            currentPeriodEnd: {
-                $gt: new Date()
-            }
+            cancelAtPeriodEnd: true
         })
 
         if (!subscription)
@@ -215,8 +214,8 @@ class StripeBillingProvider {
                 : null,
             user: user._id,
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            currentPeriodStart: subscription.current_period_start,
-            currentPeriodEnd: subscription.current_period_end
+            currentPeriodStart: fromUnixTime(subscription.current_period_start),
+            currentPeriodEnd: fromUnixTime(subscription.current_period_end)
         })
 
         return this.prepareSubscriptionResponse(subscription)

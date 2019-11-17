@@ -37,15 +37,29 @@ class StripeWebhooksController {
 
         const methodHandler = this.getMethodHandler(eventType)
 
-        if (this[methodHandler]) await this[methodHandler](event)
+        try {
+            if (this[methodHandler]) await this[methodHandler](event)
+        } catch (e) {
+            Consola.error(e)
+        }
 
-        return response.ok({ received: true })
+        response.ok({ received: true })
     }
 
     async handleInvoicePaymentSucceeded(event) {
         const invoice = event.data.object
 
-        // const subscription = await this.SubscriptionModel.findOne({})
+        if (invoice.billing_reason === 'subscription_create') {
+            const subscription = await this.SubscriptionModel.findOne({
+                stripeId: invoice.subscription
+            })
+
+            if (!subscription) return
+
+            subscription.status = 'active'
+
+            await subscription.save()
+        }
     }
 
     async handleCustomerSubscriptionUpdated(event) {
@@ -53,7 +67,7 @@ class StripeWebhooksController {
 
         // find the matching subscription from our database
         const subscription = await this.SubscriptionModel.findOne({
-            _id: stripeSubscription.id
+            stripeId: stripeSubscription.id
         })
 
         if (!subscription) return
