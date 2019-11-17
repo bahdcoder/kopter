@@ -1,13 +1,14 @@
 const Express = require('express')
 const Jwt = require('jsonwebtoken')
+require('../test-utils/setup-env')()
 const Kopter = require('../../Kopter')
 const { Container } = require('typedi')
 const { USER_MODEL } = require('../../utils/constants')
 const jwtAuthMiddleware = require('../../middleware/jwt-auth')
 const generateFakeUser = require('../test-utils/generate-fake-user')
+const clearRegisteredModels = require('../test-utils/clear-registered-models')
 
-process.env.JWT_SECRET = 'shhhh'
-process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
+beforeEach(clearRegisteredModels)
 
 test('The middleware allows authenticated users to go through just fine', async () => {
     await new Kopter(Express()).init()

@@ -7,11 +7,7 @@ const UserSchema = new Mongoose.Schema({
         required: true,
         lowercase: true
     },
-    firstName: {
-        type: String,
-        required: false
-    },
-    lastName: {
+    name: {
         type: String,
         required: false
     },

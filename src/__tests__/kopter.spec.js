@@ -1,13 +1,15 @@
 const Kopter = require('../Kopter')
+require('./test-utils/setup-env')()
 const Mongoose = require('mongoose')
+const clearRegisteredModels = require('./test-utils/clear-registered-models')
 
 const defaultKopterConfig = {}
-
-process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
 afterAll(async () => {
     await Mongoose.connection.close()
 })
+
+beforeEach(clearRegisteredModels)
 
 test('It initialises a new instance correctly', () => {
     const kopter = new Kopter(defaultKopterConfig)

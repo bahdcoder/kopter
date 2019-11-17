@@ -1,14 +1,12 @@
 const Faker = require('faker')
 const Bcrypt = require('bcryptjs')
+require('./test-utils/setup-env')()
 const Kopter = require('../Kopter')
 const Request = require('supertest')
 const Mongoose = require('mongoose')
 const { Container } = require('typedi')
+const clearRegisteredModels = require('./test-utils/clear-registered-models')
 const { USER_MODEL, PASSWORD_RESETS_MODEL } = require('../utils/constants')
-const { PASSWORD_RESETS_SERVICE } = require('../utils/constants')
-
-process.env.JWT_SECRET = 'shhh'
-process.env.MONGODB_URL = 'mongodb://localhost:27017/kopter'
 
 const defaultKopterConfig = {
     pino: false,
@@ -21,6 +19,8 @@ const defaultKopterConfig = {
         }
     }
 }
+
+beforeEach(clearRegisteredModels)
 
 afterAll(async () => {
     await Container.get(USER_MODEL).deleteMany({})
