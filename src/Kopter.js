@@ -18,6 +18,7 @@ const asyncRequest = require('./utils/async-request')
 const {
     USER_MODEL,
     USER_SERVICE,
+    MAILS_QUEUE,
     MAIL_SERVICE,
     X_POWERED_BY,
     KOPTER_CONFIG,
@@ -103,19 +104,21 @@ class Kopter {
             queue: {
                 workers: [
                     {
-                        name: 'mails.queue',
+                        name: MAILS_QUEUE,
                         options: {},
-                        handler({ job, done, Container: Con }) {
+                        handler: async ({
+                            job: { data },
+                            done,
+                            Container: CliContainer
+                        }) => {
+                            await CliContainer.get(MAIL_SERVICE)
+                                .build(data.mailName, data.customMailConfig)
+                                .subject(data.subject)
+                                .data({ user: data.data })
+                                .to([data.recipients])
+                                .send()
+
                             done()
-                        }
-                    },
-                    {
-                        name: 'delete-users.queue',
-                        options: {},
-                        handler() {
-                            console.log(
-                                '############# DELETING USERS HERE HERE'
-                            )
                         }
                     }
                 ]
@@ -409,44 +412,63 @@ class Kopter {
 
     registerRegistrationEventListeners() {
         if (this.config.disableRegistrationEventListeners) return
-        this.registerEventEmitters(
-            'confirm-email',
-            USER_REGISTERED,
-            'Welcome to Kopter !!!'
-        )
+
+        Container.get(EVENT_DISPATCHER).on(USER_REGISTERED, async user => {
+            const mailName = 'confirm-email'
+            let customMailConfig = {}
+
+            if (
+                !Fs.existsSync(
+                    `${process.cwd() + this.config.mail.views}/${mailName}`
+                )
+            ) {
+                customMailConfig = {
+                    useCustomMailPaths: true,
+                    views: Path.resolve(__dirname, 'mails')
+                }
+            }
+
+            Container.get(MAILS_QUEUE).add({
+                data: user,
+                mailName,
+                customMailConfig,
+                subject: 'Welcome to Kopter !',
+                recipients: user.email
+            })
+        })
     }
 
     registerPasswordResetEventListener() {
         if (this.config.disablePasswordResetsEventListeners) return
-        this.registerEventEmitters(
-            'password-reset',
-            PASSWORD_RESET,
-            'Reset Password !!!'
-        )
-    }
 
-    registerEventEmitters(mailName, event, subject) {
         const config = this.config.mail
 
-        Container.get(EVENT_DISPATCHER).on(event, async user => {
-            const mailFolder = process.cwd() + config.views
+        Container.get(EVENT_DISPATCHER).on(
+            PASSWORD_RESET,
+            async ({ user, token }) => {
+                let customMailConfig = {}
+                let mailName = 'password-reset'
 
-            const customMailConfig = {}
+                if (
+                    !Fs.existsSync(
+                        `${process.cwd() + config.views}/${mailName}`
+                    )
+                ) {
+                    customMailConfig = {
+                        useCustomMailPaths: true,
+                        views: Path.resolve(__dirname, 'mails')
+                    }
+                }
 
-            if (!Fs.existsSync(`${mailFolder}/${mailName}`)) {
-                customMailConfig.useCustomMailPaths = true
-
-                customMailConfig.views = Path.resolve(__dirname, 'mails')
+                Container.get(MAILS_QUEUE).add({
+                    data: { user, token },
+                    mailName,
+                    customMailConfig,
+                    subject: 'Reset your password.',
+                    recipients: user.email
+                })
             }
-
-            Container.get('mails.queue').add({
-                data: user,
-                mailName,
-                customMailConfig,
-                subject,
-                recipients: user.email
-            })
-        })
+        )
     }
 
     /**

@@ -54,7 +54,7 @@ class PasswordResetsController {
 
         this.EventEmitter.emit(PASSWORD_RESET, {
             token: tokenData.token,
-            ...user
+            user
         })
 
         return this.successResponse(response, 'password reset email sent')
