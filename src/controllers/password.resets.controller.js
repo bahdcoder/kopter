@@ -11,7 +11,7 @@ const {
 class PasswordResetsController {
     constructor() {
         this.EventEmitter = Container.get(EVENT_DISPATCHER)
-        this.PasswordResetsService = Container.get(PASSWORD_RESETS_SERVICE)
+        this.PasswordResetService = Container.get(PASSWORD_RESETS_SERVICE)
 
         this.resetPassword = this.resetPassword.bind(this)
         this.successResponse = this.successResponse.bind(this)
@@ -23,16 +23,16 @@ class PasswordResetsController {
     }
 
     async resetPassword(request, response) {
-        const resetToken = await this.PasswordResetsService.findToken(
+        const resetToken = await this.PasswordResetService.findToken(
             request.params.token
         )
 
-        await this.PasswordResetsService.setNewPassword(
+        await this.PasswordResetService.setNewPassword(
             resetToken.user,
             Bcrypt.hashSync(request.body.password)
         )
 
-        this.PasswordResetsService.deleteToken(request.params.token)
+        this.PasswordResetService.deleteToken(request.params.token)
 
         return this.successResponse(response, 'Password reset successfully')
     }
@@ -40,17 +40,17 @@ class PasswordResetsController {
     async forgotPassword(request, response) {
         await this.validate(request.body)
 
-        const user = await this.PasswordResetsService.findUserByEmail(
+        const user = await this.PasswordResetService.findUserByEmail(
             request.body.email
         )
 
         const tokenData = {
             token: RandomString.generate(72),
             user: user._id,
-            expiresAt: this.PasswordResetsService.getTokenExpiryDate()
+            expiresAt: this.PasswordResetService.getTokenExpiryDate()
         }
 
-        const resetToken = await this.PasswordResetsService.saveToken(tokenData)
+        const resetToken = await this.PasswordResetService.saveToken(tokenData)
 
         this.EventEmitter.emit(PASSWORD_RESET, {
             token: tokenData.token,
