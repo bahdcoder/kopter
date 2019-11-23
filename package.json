@@ -1,6 +1,6 @@
 {
     "name": "kopter",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "main": "src/index.js",
     "description": "Complete saas starter app for node.js",
     "repository": "https://github.com/bahdcoder/kopter",
