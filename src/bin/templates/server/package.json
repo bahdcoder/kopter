@@ -1,0 +1,13 @@
+{
+    "name": "{{ appName }}",
+    "version": "1.0.0",
+    "description": "{{ appName }} - Amazing SAAS application by Kopter",
+    "main": "app.js",
+    "dependencies": {
+        "kopter": "{{ kopterVersion }}"
+    },
+    "scripts": {
+        "start": "node app.js",
+        "workers": "kopter workers"
+    }
+}

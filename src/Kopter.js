@@ -519,6 +519,30 @@ class Kopter {
         })
     }
 
+    registerFetchConfigRoute() {
+        this.app.use('/app/configuration', (_, response) =>
+            response.ok(
+                Omit(this.config, [
+                    'UserSchema',
+                    'NotificationSchema',
+                    'PasswordResetsSchema',
+                    'SubscriptionSchema',
+                    'notificationChannels',
+                    'queue',
+                    'mail',
+                    'bodyParser',
+                    'disableXPoweredByHeader',
+                    'mongoose',
+                    'disableRegistrationEventListeners',
+                    'disablePasswordResetsEventListeners',
+                    'dotenv',
+                    'pino',
+                    'cors'
+                ])
+            )
+        )
+    }
+
     registerSubscriptionRoutes() {
         const router = this.getSubscriptionsRouter()
 
@@ -649,6 +673,8 @@ class Kopter {
                     this.registerResponseHelpers()
 
                     this.registerWebhooks()
+
+                    this.registerFetchConfigRoute()
                     /**
                      * Configure body parser
                      */
@@ -673,7 +699,7 @@ class Kopter {
                 })
 
                 .catch(e => {
-                    console.log(e)
+                    throw e
                     // TODO: Gracefully shut down the system
                     // maybe send a notification that things are broken.
                     return Promise.reject(e)
