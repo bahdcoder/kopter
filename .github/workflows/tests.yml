@@ -19,6 +19,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Run tests for kopter
       run: |
+        yarn
         yarn test
       env:
         CI: true
