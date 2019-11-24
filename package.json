@@ -1,6 +1,6 @@
 {
     "name": "kopter",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "main": "src/index.js",
     "description": "Complete saas starter app for node.js",
     "repository": "https://github.com/bahdcoder/kopter",
@@ -16,7 +16,6 @@
         "fs-extra": "^8.1.0",
         "husky": "^3.0.9",
         "jest": "^24.9.0",
-        "nodemon": "^1.19.4",
         "prettier": "^1.18.2",
         "supertest": "^4.0.2",
         "ts-jest": "^24.1.0",
@@ -26,6 +25,7 @@
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.19.0",
         "bull": "^3.11.0",
+        "chalk": "^3.0.0",
         "change-case": "^3.1.0",
         "commander": "^4.0.1",
         "consola": "^2.11.0",
@@ -33,6 +33,7 @@
         "date-fns": "^2.7.0",
         "deepmerge": "^4.2.2",
         "dotenv": "^8.2.0",
+        "edge.js": "^1.1.4",
         "eventemitter2": "^5.0.1",
         "express": "^4.17.1",
         "express-pino-logger": "^4.0.0",
@@ -44,7 +45,8 @@
         "randomstring": "^1.1.5",
         "reflect-metadata": "^0.1.13",
         "stripe": "^7.11.0",
-        "typedi": "^0.8.0"
+        "typedi": "^0.8.0",
+        "validate-npm-package-name": "^3.0.0"
     },
     "scripts": {
         "watch": "nodemon src/",

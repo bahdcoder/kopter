@@ -268,5 +268,54 @@ module.exports = {
                 }
             }
         ]
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Billing
+    |--------------------------------------------------------------------------
+    |
+    | Configure the billing functionality for your application
+    |
+    |
+    */
+    billing: {
+        /*
+        | This defines the provider used
+        */
+        provider: 'stripe',
+
+        /*
+        | This forces the user to provide a paymentMethod on registration
+        */
+        cardUpFront: true,
+
+        /*
+        | This forces the user to select a plan during registration
+        */
+        mustSelectPlan: true
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Billing Provider
+    |--------------------------------------------------------------------------
+    |
+    | Configure the billing provider for your app. This can be stripe,
+    | flutterwave, paystack or braintree. The key should be the
+    | name of the provider, and the plans should all be
+    | valid plans configured on the provider
+    | dashboard.
+    |
+    */
+    stripe: {
+        plans: [
+            {
+                name: 'Pro',
+                id: 'plan_G8uq9K2ajMrlgB',
+                price: 99,
+                trialDays: 14
+            }
+        ]
     }
 }

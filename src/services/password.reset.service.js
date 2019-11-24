@@ -3,7 +3,7 @@ const { Container } = require('typedi')
 const addMinutes = require('date-fns/addMinutes')
 const { USER_MODEL, PASSWORD_RESETS_MODEL } = require('../utils/constants')
 
-class PasswordResetsService {
+class PasswordResetService {
     constructor() {
         this.PasswordResetsModel = Container.get(PASSWORD_RESETS_MODEL)
         this.UserModel = Container.get(USER_MODEL)
@@ -76,4 +76,4 @@ class PasswordResetsService {
     }
 }
 
-module.exports = PasswordResetsService
+module.exports = PasswordResetService

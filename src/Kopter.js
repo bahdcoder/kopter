@@ -44,12 +44,12 @@ const BillingService = require('./services/billing.service')
 const NotificationSchema = require('./models/notification.model')
 const SubscriptionSchema = require('./models/subscription.model')
 const LoginController = require('./controllers/login.controller')
-const PasswordResetsSchema = require('./models/reset.password.model')
 const StripeBillingProvider = require('./billing-providers/stripe')
+const PasswordResetSchema = require('./models/password.reset.model')
 const NotificationService = require('./services/notification.service')
 const RegisterController = require('./controllers/register.controller')
 const MailNotificationChannel = require('./notification-channels/mail')
-const PasswordResetsService = require('./services/password.resets.service')
+const PasswordResetService = require('./services/password.reset.service')
 const SubscriptionController = require('./controllers/subscription.controller')
 const DatabaseNotificationChannel = require('./notification-channels/database')
 const PasswordResetsController = require('./controllers/password.resets.controller')
@@ -81,8 +81,8 @@ class Kopter {
             BillingService,
             SubscriptionSchema,
             NotificationSchema,
-            PasswordResetsSchema,
-            PasswordResetsService,
+            PasswordResetSchema,
+            PasswordResetService,
             StripeBillingProvider,
             notificationChannels: [
                 MailNotificationChannel,
@@ -102,26 +102,7 @@ class Kopter {
             disableRegistrationEventListeners: false,
             disablePasswordResetsEventListeners: false,
             queue: {
-                workers: [
-                    {
-                        name: MAILS_QUEUE,
-                        options: {},
-                        handler: async ({
-                            job: { data },
-                            done,
-                            Container: CliContainer
-                        }) => {
-                            await CliContainer.get(MAIL_SERVICE)
-                                .build(data.mailName, data.customMailConfig)
-                                .subject(data.subject)
-                                .data({ user: data.data })
-                                .to([data.recipients])
-                                .send()
-
-                            done()
-                        }
-                    }
-                ]
+                workers: []
             }
         }
 
@@ -133,7 +114,7 @@ class Kopter {
             'BillingService',
             'NotificationSchema',
             'SubscriptionSchema',
-            'PasswordResetsSchema',
+            'PasswordResetSchema',
             'StripeBillingProvider'
         ])
 
@@ -144,7 +125,7 @@ class Kopter {
             'BillingService',
             'NotificationSchema',
             'SubscriptionSchema',
-            'PasswordResetsSchema',
+            'PasswordResetSchema',
             'StripeBillingProvider'
         ])
 
@@ -267,11 +248,10 @@ class Kopter {
             UserSchema: UserSchemaWithBilling,
             UserService: config.UserService || this.config.UserService,
             MailService: config.MailService || this.config.MailService,
-            PasswordResetsSchema:
-                config.PasswordResetsSchema || this.config.PasswordResetsSchema,
-            PasswordResetsService:
-                config.PasswordResetsService ||
-                this.config.PasswordResetsService,
+            PasswordResetSchema:
+                config.PasswordResetSchema || this.config.PasswordResetSchema,
+            PasswordResetService:
+                config.PasswordResetService || this.config.PasswordResetService,
             BillingService: config.BillingService || this.config.BillingService,
             NotificationSchema:
                 config.NotificationSchema || this.config.NotificationSchema,
@@ -367,7 +347,7 @@ class Kopter {
 
         Container.set(
             PASSWORD_RESETS_MODEL,
-            Mongoose.model('ResetPassword', this.config.PasswordResetsSchema)
+            Mongoose.model('ResetPassword', this.config.PasswordResetSchema)
         )
 
         Container.set(
@@ -404,7 +384,7 @@ class Kopter {
 
         Container.set(
             PASSWORD_RESETS_SERVICE,
-            new this.config.PasswordResetsService()
+            new this.config.PasswordResetService()
         )
 
         Container.set(BILLING_SERVICE, new this.config.BillingService())
@@ -517,6 +497,30 @@ class Kopter {
             })
             next()
         })
+    }
+
+    registerFetchConfigRoute() {
+        this.app.use('/app/configuration', (_, response) =>
+            response.ok(
+                Omit(this.config, [
+                    'UserSchema',
+                    'NotificationSchema',
+                    'PasswordResetSchema',
+                    'SubscriptionSchema',
+                    'notificationChannels',
+                    'queue',
+                    'mail',
+                    'bodyParser',
+                    'disableXPoweredByHeader',
+                    'mongoose',
+                    'disableRegistrationEventListeners',
+                    'disablePasswordResetsEventListeners',
+                    'dotenv',
+                    'pino',
+                    'cors'
+                ])
+            )
+        )
     }
 
     registerSubscriptionRoutes() {
@@ -649,6 +653,8 @@ class Kopter {
                     this.registerResponseHelpers()
 
                     this.registerWebhooks()
+
+                    this.registerFetchConfigRoute()
                     /**
                      * Configure body parser
                      */
@@ -673,7 +679,7 @@ class Kopter {
                 })
 
                 .catch(e => {
-                    console.log(e)
+                    throw e
                     // TODO: Gracefully shut down the system
                     // maybe send a notification that things are broken.
                     return Promise.reject(e)

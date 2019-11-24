@@ -1,6 +1,6 @@
 const Mongoose = require('mongoose')
 
-const PasswordResetsSchema = new Mongoose.Schema({
+const PasswordResetSchema = new Mongoose.Schema({
     token: {
         type: String,
         required: true
@@ -17,4 +17,4 @@ const PasswordResetsSchema = new Mongoose.Schema({
     }
 })
 
-module.exports = PasswordResetsSchema
+module.exports = PasswordResetSchema
