@@ -68,6 +68,11 @@ class Kopter {
             }
         }
 
+        // Clear all null or undefined values
+        Object.keys(config).forEach(
+            key => [null, undefined].includes(config[key]) && delete config[key]
+        )
+
         this.app = Express()
 
         this.config = {
