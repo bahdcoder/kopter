@@ -17,6 +17,15 @@ const defaultKopterConfig = {
         memory: {
             driver: 'memory'
         }
+    },
+    queue: {
+        workers: [
+            {
+                name: 'mails.queue',
+                id: '',
+                handler() {}
+            }
+        ]
     }
 }
 
