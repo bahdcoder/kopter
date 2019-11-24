@@ -6,9 +6,11 @@ const Request = require('supertest')
 const Mongoose = require('mongoose')
 const { Container } = require('typedi')
 const { USER_MODEL } = require('../utils/constants')
+const kopterConfig = require('../bin/templates/server/kopter.config')
 const clearRegisteredModels = require('./test-utils/clear-registered-models')
 
 const defaultKopterConfig = {
+    ...kopterConfig,
     pino: false
 }
 

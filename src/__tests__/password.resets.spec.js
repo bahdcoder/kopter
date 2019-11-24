@@ -8,7 +8,10 @@ const { Container } = require('typedi')
 const clearRegisteredModels = require('./test-utils/clear-registered-models')
 const { USER_MODEL, PASSWORD_RESETS_MODEL } = require('../utils/constants')
 
+const kopterKonfig = require('../bin/templates/server/kopter.config')
+
 const defaultKopterConfig = {
+    ...kopterKonfig,
     pino: false,
     mail: {
         connection: 'memory',
@@ -26,7 +29,8 @@ const defaultKopterConfig = {
                 handler() {}
             }
         ]
-    }
+    },
+    PasswordResetService: null
 }
 
 beforeEach(clearRegisteredModels)

@@ -1,9 +1,12 @@
 const Kopter = require('../Kopter')
 require('./test-utils/setup-env')()
 const Mongoose = require('mongoose')
+const kopterConfig = require('../bin/templates/server/kopter.config')
 const clearRegisteredModels = require('./test-utils/clear-registered-models')
 
-const defaultKopterConfig = {}
+const defaultKopterConfig = {
+    ...kopterConfig
+}
 
 afterAll(async () => {
     await Mongoose.connection.close()
