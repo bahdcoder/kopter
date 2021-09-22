@@ -33,7 +33,7 @@
         "date-fns": "^2.7.0",
         "deepmerge": "^4.2.2",
         "dotenv": "^8.2.0",
-        "edge.js": "^1.1.4",
+        "edge.js": "^5.3.2",
         "eventemitter2": "^5.0.1",
         "express": "^4.17.1",
         "express-pino-logger": "^4.0.0",
