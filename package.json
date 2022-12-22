@@ -39,7 +39,7 @@
         "express-pino-logger": "^4.0.0",
         "friendly-mail": "^1.0.3",
         "indicative": "^7.2.3",
-        "jsonwebtoken": "^8.5.1",
+        "jsonwebtoken": "^9.0.0",
         "mongoose": "^5.7.7",
         "object.omit": "^3.0.0",
         "randomstring": "^1.1.5",
